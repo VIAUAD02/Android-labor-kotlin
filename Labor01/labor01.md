@@ -24,7 +24,7 @@ A kisZH-k kettő vagy három hetente lesznek, ezek időpontját az első vagy m�
 
 A labor célja, hogy bemutassa az Android fejlesztőkörnyezetet, az alkalmazáskészítés, illetve a tesztelés és fordítás folyamatát, az alkalmazás felügyeletét, valamint az emulátor és a fejlesztőkörnyezet funkcióit. Ismertetjük egy Hello World alkalmazás elkészítésének módját és labor során a laborvezető részletesen bemutatja az eszközöket.
 
-A mérés az alábbi témákat érinti:
+A labor az alábbi témákat érinti:
 
 *   Az Android platform alapfogalmainak ismerete
 *   Android Studio fejlesztőkörnyezet alapok
@@ -49,7 +49,7 @@ A projekt létrehozása után a forráskód az `src` könyvtárban, míg a felha
 
 6.  Végül a rendszer végrehajtja az aláírást és előáll a készülékekre telepíthető, aláírt APK.
 
-<img src="./assets/lab-1-compile.png" width= "630" align="middle">
+<img src="./assets/lab-1-compile.jpg" width= "630" align="middle">
 
 *Fordítás menete Android platformon*
 
@@ -74,7 +74,7 @@ Az Android Studio a [Gradle](https://gradle.org/) build rendszert használja eze
 
 A [developer.android.com/studio](https://developer.android.com/studio) oldalról letölthető az IDE és az SDK. Ennek fontosabb mappáit, eszközeit tekintsék át a laborvezető segítségével!
 
-![](assets/ide_android.png)
+![](assets/ide_android.jpg)
 
 SDK szerkezet:
 
@@ -90,11 +90,11 @@ Az SDK kezelésére az SDK managert használjuk, ezzel lehet letölteni és fris
 
 Az SDK Manager ikonja a fenti toolbaron:
 
-![](assets/sdk_manager_icon.png)
+![](assets/sdk_manager_icon.jpg)
 
 SDK manager felülete:
 
-![](assets/sdk_manager.png)
+![](assets/sdk_manager.jpg)
 
 *Megjegyzés: Korábban létezett egy standalone SDK manager de ennek használata mára deprecated lett. Ha online forrásokban ilyet látunk ne lepődjünk meg.*
 
@@ -106,9 +106,9 @@ Az AVD az Android Virtual Device rövidítése. Ahogy arról már előadáson is
 
 Az AVD Manager ikonja:
 
-![](assets/avd_icon.png)
+![](assets/avd_icon.jpg)
 
-![](assets/avd.png)
+![](assets/avd.jpg)
 
 A fenti képen bal oldalon a létező virtuális eszközök listáját találjuk, jobb oldalon pedig az ún. eszköz definíciókét. Itt néhány előre elkészített sablon áll rendelkezésre. Magunk is készíthetünk ilyet, ha tipikusan egy adott eszközre szeretnénk fejleszteni (pl. Galaxy S4). Készítsünk új emulátort! Értelemszerűen csak olyan API szintű eszközt készíthetünk, amilyenek rendelkezésre állnak az SDK manageren keresztül.
 
@@ -134,7 +134,7 @@ A fenti képen bal oldalon a létező virtuális eszközök listáját találjuk
 
     - Ha mindent rendben talál az ablak, akkor *Finish*!
 
-![](assets/avd_create.png)
+![](assets/avd_create.jpg)
 
 Az Android Virtual Device Manager-ben megjelent az imént létrehozott eszközünk. Itt lehetőség van a korábban megadott paraméterek szerkesztésére, a "készülékről" a felhasználói adatok törlésére (*Wipe Data* - Teljes visszaállítás), illetve az emulátor példány duplikálására vagy törlésére.
 
@@ -146,7 +146,7 @@ Megjegyzés: A gyári emulátoron kívül több alternatíva is létezik, a [Gen
 
 Tesztelés céljából nagyon jól használható az emulátor, amely az alábbi képen látható plusz funkciókat is adja. Lehetőség van többek között egyedi hely beállítására, bejövő hívás szimulálására, stb. A panelt a futó emulátor jobb oldalán található vezérlő gombok közül a *...* gombbal lehet megnyitni:
 
-![](assets/avd_extras.png)
+![](assets/avd_extras.jpg)
 
 
 ## Fejlesztői környezet
@@ -187,7 +187,7 @@ Ez a rész azoknak szól, akik korábban már használták az Eclipse nevű IDE-
     *   Szín ikonja a sor elején; kiemelve jobb oldalon, hogy melyik nézeten vagyunk; szabadszavas kiegészítés; a "Hello world" igazából `@string/very_very_very_long_hello_world`.*
 
 
-![](assets/nice_studio.png)
+![](assets/nice_studio.jpg)
 
 
 
@@ -244,11 +244,11 @@ A Studio sok sablont tartalmaz, röviden tekintsék át a lehetőségeket:
 
 A készülék erőforráshasználata [monitorozható](https://developer.android.com/studio/profile/android-profiler) ezen a felületen, amelyet az említett *View -> Tool Windows*-ból érhetünk el.
 
-![](assets/ap.png)
+![](assets/ap.jpg)
 
 Például részletes információt kaphatunk a memória használatról:
 
-![](assets/ap_memory.png)
+![](assets/ap_memory.jpg)
 
 ## Feladatok:
 

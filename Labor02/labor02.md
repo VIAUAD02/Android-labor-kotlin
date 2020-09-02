@@ -191,7 +191,7 @@ Ha most kipróbáljuk az alkalmazást, már látjuk a beállítások hatását:
 - A legtöbb billentyűzettel az első mezőhöz most már megjelenik a `@` szimbólum, a másodiknál pedig csak számokat írhatunk be.
 - Mivel a második mezőt jelszó típusúnak állítottuk be, a karakterek a megszokott módon elrejtésre kerülnek a beírásuk után.
 
-Még egy dolgunk van ezen a képernyőn, az input ellenőrzése. Ezt a `LoginActivity.java` fájlban tehetjük meg. A layout-unkat alkotó View-kat az `onCreate` függvényben lévő `setContentView` hívás után tudjuk először elérni. Kotlinban az XML-ben beállított ID-kkal lesz referenciánk a szükséges View-kra, ezekkel már tudjuk kezelni tudjuk a gomb lenyomását:
+Még egy dolgunk van ezen a képernyőn, az input ellenőrzése. Ezt a `LoginActivity.kt` fájlban tehetjük meg. A layout-unkat alkotó View-kat az `onCreate` függvényben lévő `setContentView` hívás után tudjuk először elérni. Kotlinban az XML-ben beállított ID-kkal lesz referenciánk a szükséges View-kra, ezekkel már tudjuk kezelni tudjuk a gomb lenyomását:
 
 ```kotlin
 btnLogin.setOnClickListener {
