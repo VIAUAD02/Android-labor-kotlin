@@ -52,7 +52,7 @@ A labor során egy komplex időjárás alkalmazás készül el. A labor szűkös
 
 ### Projekt létrehozása
 
-Hozzunk létre egy `WeatherInfo` nevű projektet Android Studioban, `Add no activity` opcióval ! A *package name* legyen `hu.bme.aut.weatherinfo`! Az alkalmazást telefonra és tabletre készítjük, tehát válasszuk ki a **Phone and Tablet** lehetőséget, minimum SDK-nak pedig válasszuk az **API 16**-ot! Első `Activity`-ként hozzunk létre egy *Empty Activityt*, és nevezzük el `CityActivity`-nek, legyen ez a **Launcher Activity**-nk majd kattintsunk a *Finish* gombra!
+Hozzunk létre egy `WeatherInfo` nevű projektet Android Studioban, `Add no activity` opcióval ! A *package name* legyen `hu.bme.aut.weatherinfo`! Az alkalmazást telefonra és tabletre készítjük, tehát válasszuk ki a **Phone and Tablet** lehetőséget, minimum SDK-nak pedig válasszuk az **API 16**-ot! Első `Activity`-ként hozzunk létre egy *Basic Activityt*, és nevezzük el `CityActivity`-nek, legyen ez a **Launcher Activity**-nk majd kattintsunk a *Finish* gombra!
 
 Töltsük le és tömörítsük ki [az alkalmazáshoz szükséges erőforrásokat](./assets/drawables.zip) , majd másoljuk be őket a projekt *app/src/main/res* mappájába (Studio-ban a *res* mappa kijelölése után *Ctrl+V*)!
 
@@ -124,11 +124,11 @@ A kapott API kulcsra később szükségünk lesz az időjárás adatokat lekér�
 
 ### 1. Városlista megvalósítása (1 pont)
 
-Valósítsuk meg az egy `RecyclerView`-ból álló, városok listáját megjelenítő `CityAcitivity`-t! 
+Valósítsuk meg az egy `RecyclerView`-ból álló, városok listáját megjelenítő `CityActivity`-t! 
 
 A város nevére kattintva jelenik majd meg egy részletező nézet (*DetailsAcitivity*), ahol az időjárás információk letöltése fog történni. Új város felvételére egy *FloatingActionButton* fog szolgálni.
 
-Hozzuk létre a *content_city.xml* layout file-t, és cseréljük le a tartalmát egy `RecyclerView`-ra:
+Cseréljük le a *content_city.xml* layout file tartalmát egy `RecyclerView`-ra:
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -142,33 +142,9 @@ Hozzuk létre a *content_city.xml* layout file-t, és cseréljük le a tartalmá
     />
 ```
 
-Cseréljük le az  `activity_city.xml` tartalmát:
+Cseréljük le az  `activity_city.xml`-ben a Floating Action Button ikonját:
 
 ```xml
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".feature.city.CityActivity">
-
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
-
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <include layout="@layout/content_city" />
-
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
@@ -176,13 +152,13 @@ Cseréljük le az  `activity_city.xml` tartalmát:
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
         android:src="@drawable/ic_add_white_36dp"/>
-
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
 ```
 
 Az egyes funkciókhoz tartozó osztályokat külön package-ekbe fogjuk szervezni. Előfordulhat, hogy a másolások miatt az Android Studio nem ismeri fel egyből a package szerkezetet, így ha ilyen problémánk lenne, az osztály néven állva Alt+Enter után állítassuk be a megfelelő package nevet.
 
 A `hu.bme.aut.weatherinfo` package-ben hozzunk létre egy `feature` nevű package-et. A `feature` package-ben hozzunk létre egy `city` nevű package-et. *Drag and drop* módszerrel helyezzük át a `CityActivity`-t a `city` *package*-be, a felugró dialógusban pedig kattintsunk a *Refactor* gombra.
+
+Töröljük a generált két Fragment-et és a hozzájuk tartozó layout file-okat.
 
 A `CityActivity` kódját cseréljük le a következőre:
 
