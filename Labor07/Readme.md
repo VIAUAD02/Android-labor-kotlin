@@ -639,15 +639,6 @@ object NetworkManager {
             .build()
         weatherApi = retrofit.create(WeatherApi::class.java)
     }
-
-    fun getWeather(
-        city: String?,
-        onSuccess: (WeatherData) -> Unit,
-        onError: (Throwable) -> Unit
-    ){
-        val getWeatherRequest = weatherApi.getWeather(city, "metric", APP_ID)
-        runCallOnBackgroundThread(getWeatherRequest, onSuccess, onError)
-    }
 }
 ```
 
