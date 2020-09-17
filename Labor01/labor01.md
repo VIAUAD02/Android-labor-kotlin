@@ -8,7 +8,7 @@ iMSC pontok a ZH-n, a nagyHF-n és várhatóan néhány laboron szerezhetők. Az
 
 ### Laborok értékelése
 
-Minden labor leírása tartalmazza, hogy mi a megoldandó feladat. A megoldásokat minden esetben az AUT portálra kell feltölteni.
+Minden labor leírása tartalmazza, hogy mi a megoldandó feladat. A megoldásokat minden esetben a Moodle portálra kell feltölteni.
 
 ### Beugró
 
