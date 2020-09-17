@@ -158,7 +158,7 @@ Az egyes funkciókhoz tartozó osztályokat külön package-ekbe fogjuk szervezn
 
 A `hu.bme.aut.weatherinfo` package-ben hozzunk létre egy `feature` nevű package-et. A `feature` package-ben hozzunk létre egy `city` nevű package-et. *Drag and drop* módszerrel helyezzük át a `CityActivity`-t a `city` *package*-be, a felugró dialógusban pedig kattintsunk a *Refactor* gombra.
 
-Töröljük a generált két Fragment-et és a hozzájuk tartozó layout file-okat.
+Töröljük a generált két Fragment-et és a hozzájuk tartozó layout file-okat, valamint a res/navigation mappa tartalmát.
 
 A `CityActivity` kódját cseréljük le a következőre:
 
@@ -964,6 +964,19 @@ private fun displayWeatherData(receivedWeatherData: WeatherData) {
     weatherData = receivedWeatherData
     val detailsPagerAdapter = DetailsPagerAdapter(supportFragmentManager, this)
     mainViewPager.adapter = detailsPagerAdapter
+}
+```
+
+A hálózati kapcsolat során fellépő hibák kezelésére vezessük be a `showError` függvényt:
+
+```kotlin
+private fun showError(throwable: Throwable){
+    throwable.printStackTrace()
+    Toast.makeText(
+        this@DetailsActivity,
+        "Network request error occurred, check LOG",
+        Toast.LENGTH_SHORT
+    ).show()
 }
 ```
 
