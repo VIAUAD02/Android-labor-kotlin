@@ -52,7 +52,7 @@ A labor során egy komplex időjárás alkalmazás készül el. A labor szűkös
 
 ### Projekt létrehozása
 
-Hozzunk létre egy `WeatherInfo` nevű projektet Android Studioban, `Add no activity` opcióval ! A *Company domain* legyen `aut.bme.hu`! Az alkalmazást telefonra és tabletre készítjük, tehát válasszuk ki a **Phone and Tablet** lehetőséget, minimum SDK-nak pedig válasszuk az **API 15**-öt! Első `Activity`-ként hozzunk létre egy *Empty Activityt*, és nevezzük el `CityActivity`-nek, legyen ez a **Launcher Activity**-nk majd kattintsunk a *Finish* gombra!
+Hozzunk létre egy `WeatherInfo` nevű projektet Android Studioban, `Add no activity` opcióval ! A *package name* legyen `hu.bme.aut.weatherinfo`! Az alkalmazást telefonra és tabletre készítjük, tehát válasszuk ki a **Phone and Tablet** lehetőséget, minimum SDK-nak pedig válasszuk az **API 15**-öt! Első `Activity`-ként hozzunk létre egy *Empty Activityt*, és nevezzük el `CityActivity`-nek, legyen ez a **Launcher Activity**-nk majd kattintsunk a *Finish* gombra!
 
 Töltsük le és tömörítsük ki [az alkalmazáshoz szükséges erőforrásokat](./assets/drawables.zip) , majd másoljuk be őket a projekt *app/src/main/res* mappájába (Studio-ban a *res* mappa kijelölése után *Ctrl+V*)!
 
