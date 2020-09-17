@@ -423,12 +423,6 @@ A `DetailsActivity.java`  kódja legyen a következő:
 class DetailsActivity : AppCompatActivity() {
     private var city: String? = null
 
-    private static final String TAG = "DetailsActivity";
-
-    public static final String EXTRA_CITY_NAME = "extra.city_name";
-
-    private String city;
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_details)
