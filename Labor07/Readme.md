@@ -626,7 +626,7 @@ Hozzunk létre a `network` package-ben egy `NetworkManager` osztályt:
 ```kotlin
 object NetworkManager {
     private const val SERVICE_URL = "https://api.openweathermap.org"
-    private const val APP_ID = "d4f06c8725907a8fca420129c0a25d83"
+    private const val APP_ID = "ide_jon_a_token"
 
     private val weatherApi: WeatherApi
 
