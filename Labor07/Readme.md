@@ -52,7 +52,7 @@ A labor során egy komplex időjárás alkalmazás készül el. A labor szűkös
 
 ### Projekt létrehozása
 
-Hozzunk létre egy `WeatherInfo` nevű projektet Android Studioban, `Add no activity` opcióval ! A *package name* legyen `hu.bme.aut.weatherinfo`! Az alkalmazást telefonra és tabletre készítjük, tehát válasszuk ki a **Phone and Tablet** lehetőséget, minimum SDK-nak pedig válasszuk az **API 16**-ot! Első `Activity`-ként hozzunk létre egy *Basic Activityt*, és nevezzük el `CityActivity`-nek, legyen ez a **Launcher Activity**-nk majd kattintsunk a *Finish* gombra!
+Hozzunk létre egy projektet Android Studioban. Az alkalmazást telefonra és tabletre készítjük, tehát válasszuk ki a **Phone and Tablet** lehetőséget, `No Activity` opcióval! Az alkalmazást `WeatherInfo` néven hozzuk létre, a *package name* legyen `hu.bme.aut.weatherinfo`!  minimum SDK-nak pedig válasszuk az **API 16**-ot! Első `Activity`-ként hozzunk létre egy *Basic Activityt*, és nevezzük el `CityActivity`-nek, legyen ez a **Launcher Activity**-nk majd kattintsunk a *Finish* gombra!
 
 Töltsük le és tömörítsük ki [az alkalmazáshoz szükséges erőforrásokat](./assets/drawables.zip) , majd másoljuk be őket a projekt *app/src/main/res* mappájába (Studio-ban a *res* mappa kijelölése után *Ctrl+V*)!
 
@@ -113,9 +113,9 @@ Vegyük fel az alábbi szöveges erőforrásokat a `res/values/strings.xml`-be:
 
 #### OpenWeatherMap API kulcs
 
-Regisztráljunk saját felhasználót az [OpenWeatherMap](https://openweathermap.org/) oldalon, és hozzunk létre egy API kulcsot, aminek a segítségével ahasználhatjuk majd a szolgáltatást az alkalmazásunkban! 
+Regisztráljunk saját felhasználót az [OpenWeatherMap](https://openweathermap.org/) oldalon, és hozzunk létre egy API kulcsot, aminek a segítségével használhatjuk majd a szolgáltatást az alkalmazásunkban! 
 
-1. Kattintsunk a *Sign up* gombra
+1. Kattintsunk a *Sign in* majd a *Create an account* gombra.
 2. Töltsük ki a regisztrációs formot
 3. A *Company* mező értéke legyen "BME", a *Purpose* értéke legyen "Education/Science"
 4. Sikeres regisztráció után az *API keys* tabon található az alapértelmezettként létrehozott API kulcs.
@@ -340,8 +340,7 @@ class AddCityDialogFragment : AppCompatDialogFragment() {
         return AlertDialog.Builder(requireContext())
             .setTitle(R.string.new_city)
             .setView(contentView)
-            .setPositiveButton(R.string.ok
-            ) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 listener?.onCityAdded(
                     editText?.text.toString()
                 )
@@ -660,7 +659,7 @@ Azért, hogy a hálózati hívásokat külön szálra ütemezzük, majd a válas
 
 Készítsük is el a generikus hívásunkat, mely egy tetszőleges típusú Call objektumot vár, azt egy új szálon meghívja, majd a választ (Handler segítségével) visszaütemezi a főszálra, és ott meghívja az előbb létrehozott listener objektumot. A Handler-rel a runOnUiThread-hez hasonló működést tudunk elérni, anélkül hogy referenciánk lenne egy Activity-re. Mind a sikeres hívás onSuccess, mind a sikertelen hívás onError esetére definiáljunk egy visszatérési érték nélküli, egy paraméteres lambdát, ez siker esetén a válasz lesz, mely a T generikus típussal rendelkezik, hiba esetén pedig a kapott Exception.
 
-Ennek a kódja a következő (ezt is a GalleryInteractor-ban definiáljuk):
+Ennek a kódja a következő (ezt is a NetworkManager-ben definiáljuk):
 
 ```kotlin
 private fun <T> runCallOnBackgroundThread(
@@ -703,36 +702,27 @@ A modell elemek és a hálózati réteg megvalósítása után a részletező n�
 A `ViewPager` megfelelő működéséhez létre kell hoznunk egy `FragmentPagerAdapter`-ből származó osztályt a `details` package-ben, ami az eddig látott adapterekhez hasonlóan azt határozza meg, hogy milyen elemek jelenjenek meg a hozzájuk tartozó nézeten (jelen esetben az elemek `Fragment`-ek lesznek):
 
 ```kotlin
-class DetailsPagerAdapter(fm: FragmentManager?, context: Context) :
-    FragmentPagerAdapter(fm!!) {
-    private val context: Context
+class DetailsPagerAdapter(fragmentManager: FragmentManager, private val context: Context) :
+    FragmentPagerAdapter(fragmentManager) {
 
     override fun getItem(position: Int): Fragment {
-        var ret: Fragment? = null
-        when (position) {
-            0 -> ret = DetailsMainFragment()
-            1 -> ret = DetailsMoreFragment()
+        return when (position) {
+            0 -> DetailsMainFragment()
+            1 -> DetailsMoreFragment()
+            else -> throw IllegalStateException("There is no fragment with this position: $position")
         }
-        return ret!!
     }
 
     override fun getPageTitle(position: Int): CharSequence? {
-        val title: String
-        title = when (position) {
+        return when (position) {
             0 -> context.getString(R.string.main)
             1 -> context.getString(R.string.details)
             else -> ""
         }
-        return title
     }
 
-    override fun getCount(): Int {
-        return 2
-    }
+    override fun getCount(): Int = 2
 
-    init {
-        this.context = context
-    }
 }
 ```
 
@@ -951,7 +941,7 @@ Az időjárás adatok lekérdezésének bekötéséhez implementáljunk egy `loa
 
 ```kotlin
 private fun loadWeatherData() {
-    NetworkManager.getWeather(city, this::displayWeatherData, this::showError )
+    NetworkManager.getWeather(city, ::displayWeatherData, ::showError )
 }
 ```
 
@@ -970,10 +960,10 @@ private fun displayWeatherData(receivedWeatherData: WeatherData) {
 A hálózati kapcsolat során fellépő hibák kezelésére vezessük be a `showError` függvényt:
 
 ```kotlin
-private fun showError(throwable: Throwable){
+private fun showError(throwable: Throwable) {
     throwable.printStackTrace()
     Toast.makeText(
-        this@DetailsActivity,
+        this,
         "Network request error occurred, check LOG",
         Toast.LENGTH_SHORT
     ).show()
