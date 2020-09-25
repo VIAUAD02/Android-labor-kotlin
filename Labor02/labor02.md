@@ -103,12 +103,8 @@ Most már futtathatjuk az alkalmazást, és betöltés közben látnunk kell a b
 
 ```kotlin
 override fun onCreate(savedInstanceState: Bundle?) {
-    try {
-        Thread.sleep(1000)
-    } catch (e: InterruptedException) {
-        e.printStackTrace()
-    }
-    setTheme(R.style.AppTheme);
+    Thread.sleep(1000)
+    setTheme(R.style.AppTheme)
     ...
 }
 ```
@@ -195,16 +191,18 @@ Még egy dolgunk van ezen a képernyőn, az input ellenőrzése. Ezt a `LoginAct
 
 ```kotlin
 btnLogin.setOnClickListener {
-    if (etEmailAddress.text.toString().isEmpty()) {
-        etEmailAddress.requestFocus()
-        etEmailAddress.error = "Please enter your email address"
-    }
-    else if (etPassword.text.toString().isEmpty()) {
-        etPassword.requestFocus()
-        etPassword.error = "Please enter your password"
-    }
-    else {
-    // TODO login
+    when {
+        etEmailAddress.text.toString().isEmpty() -> {
+            etEmailAddress.requestFocus()
+            etEmailAddress.error = "Please enter your email address"
+        }
+        etPassword.text.toString().isEmpty() -> {
+            etPassword.requestFocus()
+            etPassword.error = "Please enter your password"
+        }
+        else -> {
+            // TODO login
+        }
     }
 }
 ```
@@ -223,9 +221,11 @@ Hozzunk ehhez létre egy új Activity-t (New -> Activity -> Empty Activity), nev
 
 ```kotlin
 btnLogin.setOnClickListener {
+    when {
     ...
-    else {
-        startActivity(Intent(this, ListActivity::class.java))
+        else -> {
+            startActivity(Intent(this, ListActivity::class.java))
+        }
     }
 }
 ```
@@ -624,7 +624,7 @@ Ne felejtsük el a gyökérelemünkként szolgáló `LinearLayout`-ban átállí
 Menjünk az Activity Kotlin fájljába, és következő lépésként vegyünk fel egy új konstanst a hajó típus jelölésére.
 
 ```kotlin
-const val TYPE_BOAT = 4;
+const val TYPE_BOAT = 4
 ```
 
 Az előző három típussal azonos módon keressük a hajót kiválasztó gombra (`btnBoat`) is állítsunk be rá egy listener-t, amely elindítja a `DetailsActivity`-t, a `TYPE_BOAT` konstanst átadva az `Intent`-ben paraméterként.
