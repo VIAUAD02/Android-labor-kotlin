@@ -941,7 +941,7 @@ Az időjárás adatok lekérdezésének bekötéséhez implementáljunk egy `loa
 
 ```kotlin
 private fun loadWeatherData() {
-    NetworkManager.getWeather(city, ::displayWeatherData, ::showError )
+    NetworkManager.getWeather(city, ::displayWeatherData, ::showError)
 }
 ```
 
@@ -983,4 +983,4 @@ Futtassuk az alkalmazást és figyeljük meg a működését! Próbáljuk ki azt
 
 ### 5. Önálló feladat: város listából törlés megvalósítása (1 pont)
 
-Valósítsuk meg a városok törlését a *Remove* gomb megynomásának hatására.
+Valósítsuk meg a városok törlését a *Remove* gomb megnyomásának hatására.
