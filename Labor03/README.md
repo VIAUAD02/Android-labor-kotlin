@@ -106,7 +106,7 @@ override fun onCreateOptionsMenu(menu: Menu?): Boolean {
 }
 
 override fun onOptionsItemSelected(item: MenuItem): Boolean {
-	return when (item.getItemId()) {
+	return when (item.itemId) {
 		R.id.delete_all -> {
 			// TODO: itt fogjuk kezelni a kattintást
 			true
@@ -349,8 +349,8 @@ mondjuk `Hiányos adatok!`:
 
 ```kotlin
 if (salary_name.text.toString().isEmpty() || salary_amount.text.toString().isEmpty()) {
-	Toast.makeText(this, R.string.warn_message, Toast.LENGTH_LONG).show();
-	return@setOnClickListener;
+	Toast.makeText(this, R.string.warn_message, Toast.LENGTH_LONG).show()
+	return@setOnClickListener
 }
 ```
 
@@ -367,8 +367,8 @@ mappába is be kell illesztenünk.
 
 ```kotlin
 rowItem.salary_direction_icon.setImageResource(if (expense_or_income.isChecked) R.drawable.expense else R.drawable.income)
-rowItem.row_salary_name.text = salary_name.text.toString();
-rowItem.row_salary_amount.text = salary_amount.text.toString();
+rowItem.row_salary_name.text = salary_name.text.toString()
+rowItem.row_salary_amount.text = salary_amount.text.toString()
 ```
 
 - Végül hozzáadjuk a listához (LinearLayout) az új view-okat, de ehhez a LinearLayoutnak egy
@@ -436,6 +436,6 @@ a [SnackBar](https://material.io/develop/android/components/snackbar/). Cserélj
 Figyeljünk rá, hogy ha még nincs egy bejegyzés sem, akkor ne jelenjen meg semmi, illetve
 hogy a felhasználó nem fog mínusz karaktert beírni tehát a kapcsoló alapján kell eldöntenünk,
 hogy ez pozitív vagy negatív érték. Az egyszerűség kedvéért megengedjük, hogy az összeg
-mező inputType-ját decimalNumberra állítsuk, így a felhasználó nem tud betűket beírni.
+mező `inputType`-ját `numberDecimal`-ra állítsuk, így a felhasználó nem tud betűket beírni.
 - Bonus: vizsgáljuk meg mi történik, ha az EditTextet (TextInputEditTextet) TextInputLayoutal használjuk.
   - https://developer.android.com/reference/android/support/design/widget/TextInputLayout.html 
