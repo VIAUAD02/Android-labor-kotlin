@@ -44,8 +44,9 @@ A laborfeladatok sikeres befejezése után az IMSc feladatokat megoldva 2 IMSc p
 * Elemek szerkesztése: 1 pont
 
 ### Projekt létrehozása
-Hozzunk létre egy új projektet Android Studioban! Első `Activity`-ként válasszuk a *Basic Activity* lehetőséget, a projekt neve legyen `ShoppingList`, a *Company domain* `aut.bme.hu`, minimum SDK-nak pedig válasszuk az **API 15**-öt és kattintsunk a *Finish* gombra!
-Töltsük le és tömörítsük ki [az alkalmazáshoz szükséges erőforrásokat](https://github.com/VIAUAC00/Android-labor/tree/master/Labor06/downloads/res.zip), majd másoljuk be őket a projekt *app/src/main/res* mappájába (Studio-ban a *res* mappán állva *Ctrl+V*)!
+Hozzunk létre egy új projektet Android Studioban! Első `Activity`-ként válasszuk a *Basic Activity* lehetőséget, a projekt neve legyen `ShoppingList`, a *Package name* `hu.bme.aut.shoppinglist`, minimum SDK-nak pedig válasszuk az **API 21**-et és kattintsunk a *Finish* gombra!
+Töltsük le és tömörítsük ki [az alkalmazáshoz szükséges erőforrásokat](https://github.com/VIAUAC00/Android-labor-kotlin/tree/master/Labor06/downloads/res.zip), majd másoljuk be őket a projekt *app/src/main/res* mappájába (Studio-ban a *res* mappán állva *Ctrl+V*)!
+Töröljük a FirstFragment, SecondFragment osztályokat, a hozzájuk tartozó layoutokat, illetve a `res` mappában a `navigation` könyvtárat.
 
 ### Perzisztens adattárolás megvalósítása (1 pont)
 Az adatok perzisztens tárolásához a `Room` könyvtárat fogjuk használni.
@@ -53,11 +54,17 @@ Az adatok perzisztens tárolásához a `Room` könyvtárat fogjuk használni.
 #### Room hozzáadása a projekthez
 Az *app* modulhoz tartozó `build.gradle` fájlban a `dependencies` blokkhoz adjuk hozzá a `Room` libraryt:
 ```gradle
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+//...
+
 dependencies {
     //...
-    def room_version = "1.1.1"
-    implementation "android.arch.persistence.room:runtime:$room_version"
-    annotationProcessor "android.arch.persistence.room:compiler:$room_version"
+    def room_version = "2.2.5"
+    implementation "androidx.room:room-runtime:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
 }
 ```
 Ezután kattintsunk a jobb felső sarokban megjelenő **Sync now** gombra.
@@ -67,51 +74,41 @@ A  `Room` egy kényelmes adatbazáskezelést lehetővé tevő API-t nyújt a pla
 A `Room` alapvető komponenseinek, architektúrájának és használatának leírása megtalálható a megfelelő [developer.android.com](https://developer.android.com/training/data-storage/room/) oldalon.
 
 #### Egy modell osztály létrehozása
-A `hu.bme.aut.shoppinglist` package-ben hozzunk létre egy új package-et `data` néven. A `data` package-ben hozzunk létre egy új  Java osztályt, aminek a neve legyen  `ShoppingItem`:
-```java
+A `hu.bme.aut.shoppinglist` package-ben hozzunk létre egy új package-et `data` néven. A `data` package-ben hozzunk létre egy új Kotlin osztályt, aminek a neve legyen  `ShoppingItem`:
+```kotlin
 @Entity(tableName = "shoppingitem")
-public class ShoppingItem {
-    public enum Category {
+data class ShoppingItem(
+    @ColumnInfo(name = "id") @PrimaryKey(autoGenerate = true) val id: Long?,
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "description") val description: String,
+    @ColumnInfo(name = "category") val category: Category,
+    @ColumnInfo(name = "estimated_price") val estimatedPrice: Int,
+    @ColumnInfo(name = "is_bought") val isBought: Boolean
+) {
+    enum class Category {
         FOOD, ELECTRONIC, BOOK;
-
-        @TypeConverter
-        public static Category getByOrdinal(int ordinal) {
-            Category ret = null;
-            for (Category cat : Category.values()) {
-                if (cat.ordinal() == ordinal) {
-                    ret = cat;
-                    break;
+        companion object {
+            @JvmStatic
+            @TypeConverter
+            fun getByOrdinal(ordinal: Int): Category? {
+                var ret: Category? = null
+                for (cat in values()) {
+                    if (cat.ordinal == ordinal) {
+                        ret = cat
+                        break
+                    }
                 }
+                return ret
             }
-            return ret;
-        }
-
-        @TypeConverter
-        public static int toInt(Category category) {
-            return category.ordinal();
+            
+            @JvmStatic
+            @TypeConverter
+            fun toInt(category: Category): Int {
+                return category.ordinal
+            }
         }
     }
-
-    @ColumnInfo(name = "id")
-    @PrimaryKey(autoGenerate = true)
-    public Long id;
-
-    @ColumnInfo(name = "name")
-    public String name;
-
-    @ColumnInfo(name = "description")
-    public String description;
-
-    @ColumnInfo(name = "category")
-    public Category category;
-
-    @ColumnInfo(name="estimated_price")
-    public int estimatedPrice;
-
-    @ColumnInfo(name = "is_bought")
-    public boolean isBought;
 }
-
 ```
 Látható, hogy az osztályon, az osztály változóin, valamint az osztályon belül lévő *enum* osztály függvényein *annotációkat* helyeztünk el. Az `@Entity` jelzi a `Room` kódgenerátorának, hogy ennek az osztálynak a példányai adatbázis rekordoknak fognak megfelelni egy táblában és hogy az egyes változói felelnek majd meg a tábla oszlopainak. A `@ColumnInfo` *annotációval* megadjuk, hogy mi legyen a tagváltozónak megfelelő oszlop neve. `@PrimaryKey`-jel jelöljük a tábla egyszerű kulcs attribútumát. A `@TypeConverter` annotációval megoldható az, hogy összetett objektumokat is tudjunk menteni és visszaolvasni.
 
@@ -119,22 +116,22 @@ Látható, hogy az osztályon, az osztály változóin, valamint az osztályon b
 
 > DAO = [Data Access Object](https://en.wikipedia.org/wiki/Data_access_object)
 
-A `data` package-ben hozzunk létre egy új  Java interfészt, aminek a neve legyen  `ShoppingItemDao`:
+A `data` package-ben hozzunk létre egy új Kotlin interfészt, aminek a neve legyen  `ShoppingItemDao`:
 
-```java
+```kotlin
 @Dao
-public interface ShoppingItemDao {
+interface ShoppingItemDao {
     @Query("SELECT * FROM shoppingitem")
-    List<ShoppingItem> getAll();
+    fun getAll(): List<ShoppingItem>
 
     @Insert
-    long insert(ShoppingItem shoppingItems);
+    fun insert(shoppingItems: ShoppingItem): Long
 
     @Update
-    void update(ShoppingItem shoppingItem);
+    fun update(shoppingItem: ShoppingItem)
 
     @Delete
-    void deleteItem(ShoppingItem shoppingItem);
+    fun deleteItem(shoppingItem: ShoppingItem)
 }
 ```
 
@@ -144,16 +141,13 @@ Figyeljük meg, hogy az Android Studio a `@Query` *annotáció* paramétereként
 
 #### Az adatbázis osztály létrehozása
 
-A `data` package-ben hozzunk létre egy új Java osztályt, aminek a neve legyen  `ShoppingListDatabase`:
+A `data` package-ben hozzunk létre egy új Kotlin osztályt, aminek a neve legyen  `ShoppingListDatabase`:
 
-```java
-@Database(
-        entities = {ShoppingItem.class},
-        version = 1
-)
-@TypeConverters(value = {ShoppingItem.Category.class})
-public abstract class ShoppingListDatabase extends RoomDatabase {
-    public abstract ShoppingItemDao shoppingItemDao();
+```kotlin
+@Database(entities = [ShoppingItem::class], version = 1)
+@TypeConverters(value = [ShoppingItem.Category::class])
+abstract class ShoppingListDatabase : RoomDatabase() {
+    abstract fun shoppingItemDao(): ShoppingItemDao
 }
 ```
 
@@ -162,58 +156,43 @@ A `@Database` *annotációval* lehet jelezni a kódgenerátornak, hogy egy oszt�
 ### Lista megjelenítése`RecyclerView`-val (2 pont)
 
 #### A lista adapter létrehozása
-Következő lépésként a lista adaptert fogjuk létrehozni, ami a modell elemeket fogja majd szolgáltatni a `ReciclerView`-nak.
+Következő lépésként a lista adaptert fogjuk létrehozni, ami a modell elemeket fogja majd szolgáltatni a `RecyclerView`-nak.
 
 A `hu.bme.aut.shoppinglist` package-ben hozzunk létre egy új package-et `adapter` néven!
 
-Az `adapter` package-ben hozzunk létre egy új Java osztályt `ShoppingAdapter` néven:
+Az `adapter` package-ben hozzunk létre egy új Kotlin osztályt `ShoppingAdapter` néven:
 
-```java
-public class ShoppingAdapter
-        extends RecyclerView.Adapter<ShoppingAdapter.ShoppingViewHolder> {
+```kotlin
+class ShoppingAdapter(private val listener: ShoppingItemClickListener) :
+    RecyclerView.Adapter<ShoppingAdapter.ShoppingViewHolder>() {
 
-    private final List<ShoppingItem> items;
-
-    private ShoppingItemClickListener listener;
-
-    public ShoppingAdapter(ShoppingItemClickListener listener) {
-        this.listener = listener;
-        items = new ArrayList<>();
+    private val items = mutableListOf<ShoppingItem>()
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ShoppingViewHolder {
+        val itemView: View = LayoutInflater
+            .from(parent.context)
+            .inflate(R.layout.item_shopping_list, parent, false)
+        return ShoppingViewHolder(itemView)
     }
 
-    @NonNull
-    @Override
-    public ShoppingViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater
-                .from(parent.getContext())
-                .inflate(R.layout.item_shopping_list, parent, false);
-        return new ShoppingViewHolder(itemView);
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull ShoppingViewHolder holder, int position) {
+    override fun onBindViewHolder(holder: ShoppingViewHolder, position: Int) {
         // TODO implementation
     }
 
-    @Override
-    public int getItemCount() {
-        return items.size();
+    override fun getItemCount(): Int {
+        return items.size
     }
 
-    public interface ShoppingItemClickListener{
-        void onItemChanged(ShoppingItem item);
+    interface ShoppingItemClickListener {
+        fun onItemChanged(item: ShoppingItem)
     }
 
-    class ShoppingViewHolder extends RecyclerView.ViewHolder {
-
-        ShoppingViewHolder(View itemView) {
-            super(itemView);
-        }
+    inner class ShoppingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
+        // TODO implementation
     }
 }
 ```
 
- A listát `RecyclerView` segítségével szeretnénk megjeleníteni, ezért az adapter a `RecyclerView.Adapter` osztályból származik. Az adapter a modell elemeket egy listában tárolja. A rendszer a `RecyclerView`-val való hatékony lista megjelenítéshez a [*ViewHolder* tervezési mintát](https://developer.android.com/training/improving-layouts/smooth-scrolling#java) valósítja meg, ezért szükség van egy `ViewHolder` osztály megadására is. `ViewHolder`-eken keresztül érhetjük majd el a lista elemekhez tartozó `View`-kat.
+ A listát `RecyclerView` segítségével szeretnénk megjeleníteni, ezért az adapter a `RecyclerView.Adapter` osztályból származik. Az adapter a modell elemeket egy listában tárolja. A rendszer a `RecyclerView`-val való hatékony lista megjelenítéshez a [*ViewHolder* tervezési mintát](https://developer.android.com/training/improving-layouts/smooth-scrolling#java) valósítja meg, ezért szükség van egy `ViewHolder` osztály megadására is. `ViewHolder`-eken keresztül érhetjük majd el a lista elemekhez tartozó `View`-kat. Mivel a `ViewHolder` osztály példányai az Adapterhez lesznek csatolva (azért, hogy elérjék a belső változóit), `inner class` osztályként kell definiálni.
 
 A `RecyclerView.Adapter` három absztrakt függvényt definiál, amelyeket kötelező megvalósítani. Az `onCreateViewHolder()`-ben hozzuk létre az adott lista elemet megjelenítő `View`-t és a hozzá tartozó `ViewHolder`-t. Az `onBindViewHolder()`-ben kötjük hozzá a modell elemhez a nézetet, a `getItemCount()` pedig a listában található (általános esetre fogalmazva a megjelenítendő) elemek számát kell, hogy visszaadja.
 
@@ -294,92 +273,77 @@ Hozzuk létre a `@string/bought` erőforrást! Kattintsunk rá az erőforrás hi
 
 Térjünk vissza az `ShoppingAdapter`-hez, és adjuk hozzá a `ShoppingViewHolder`-hez a megfelelő mezőket. Ezeken a mezőkön keresztül fogjuk tudni elérni az egyes lista elemekhez tartozó nézeteket.
 
-```java
-class ShoppingViewHolder extends RecyclerView.ViewHolder {
+```kotlin
+inner class ShoppingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
+	val iconImageView: ImageView
+	val nameTextView: TextView
+	val descriptionTextView: TextView
+	val categoryTextView: TextView
+	val priceTextView: TextView
+	val isBoughtCheckBox: CheckBox
+	val removeButton: ImageButton
+	
+	var item: ShoppingItem? = null
 
-    ImageView iconImageView;
-    TextView nameTextView;
-    TextView descriptionTextView;
-    TextView categoryTextView;
-    TextView priceTextView;
-    CheckBox isBoughtCheckBox;
-    ImageButton removeButton;
-
-    ShoppingItem item;
-
-    ShoppingViewHolder(View itemView) {
-        super(itemView);
-        iconImageView = itemView.findViewById(R.id.ShoppingItemIconImageView);
-        nameTextView = itemView.findViewById(R.id.ShoppingItemNameTextView);
-        descriptionTextView = itemView.findViewById(R.id.ShoppingItemDescriptionTextView);
-        categoryTextView = itemView.findViewById(R.id.ShoppingItemCategoryTextView);
-        priceTextView = itemView.findViewById(R.id.ShoppingItemPriceTextView);
-        isBoughtCheckBox = itemView.findViewById(R.id.ShoppingItemIsBoughtCheckBox);
-        removeButton = itemView.findViewById(R.id.ShoppingItemRemoveButton);
-
-        isBoughtCheckBox.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                if(item != null){
-                    item.isBought = isChecked;
-                    listener.onItemChanged(item);
-                }
-            }
-        });
-    }
+	init {
+		iconImageView = itemView.findViewById(R.id.ShoppingItemIconImageView)
+		nameTextView = itemView.findViewById(R.id.ShoppingItemNameTextView)
+		descriptionTextView = itemView.findViewById(R.id.ShoppingItemDescriptionTextView)
+		categoryTextView = itemView.findViewById(R.id.ShoppingItemCategoryTextView)
+		priceTextView = itemView.findViewById(R.id.ShoppingItemPriceTextView)
+		isBoughtCheckBox = itemView.findViewById(R.id.ShoppingItemIsBoughtCheckBox)
+		removeButton = itemView.findViewById(R.id.ShoppingItemRemoveButton)
+		isBoughtCheckBox.setOnCheckedChangeListener(CompoundButton.OnCheckedChangeListener { buttonView, isChecked ->
+			item?.let { 
+				val newItem = it.copy(
+					isBought = isChecked
+				)
+				item = newItem
+				listener.onItemChanged(newItem)
+			}
+		})
+	}
 }
 ```
 Figyeljük meg, hogy az `isBoughtCheckBox`-ra egyszer, a `ViewHolder` létrehozásakor állítunk `OnCheckedChangeListener`-t, és csak a callbackben visszaadott `item` fog változni!
 
 Valósítsuk meg a `ShoppingAdapter` osztály `onBindViewHolder()`függvényét, azaz kössük hozzá a megfelelő modell elem tulajdonságait lista elem nézeteihez:
 
-```java
-@Override
-public void onBindViewHolder(@NonNull ShoppingViewHolder holder, int position) {
-    ShoppingItem item = items.get(position);
-    holder.nameTextView.setText(item.name);
-    holder.descriptionTextView.setText(item.description);
-    holder.categoryTextView.setText(item.category.name());
-    holder.priceTextView.setText(item.estimatedPrice + " Ft");
-    holder.iconImageView.setImageResource(getImageResource(item.category));
-    holder.isBoughtCheckBox.setChecked(item.isBought);
+```kotlin
+override fun onBindViewHolder(holder: ShoppingViewHolder, position: Int) {
+	val item = items[position]
+	holder.nameTextView.text = item.name
+	holder.descriptionTextView.text = item.description
+	holder.categoryTextView.text = item.category.name
+	holder.priceTextView.text = item.estimatedPrice.toString() + " Ft"
+	holder.iconImageView.setImageResource(getImageResource(item.category))
+	holder.isBoughtCheckBox.isChecked = item.isBought
 
-    holder.item = item;
+	holder.item = item
 }
 ```
 Adjuk hozzá a `ShoppingAdapter` osztályhoz az eddig hiányzó `getImageResource()` függvényt:
 
-```java
-private @DrawableRes int getImageResource(ShoppingItem.Category category) {
-    @DrawableRes int ret;
-    switch (category) {
-        case BOOK:
-            ret = R.drawable.open_book;
-            break;
-        case ELECTRONIC:
-            ret = R.drawable.lightning;
-            break;
-        case FOOD:
-            ret = R.drawable.groceries;
-            break;
-        default:
-            ret = 0;
-    }
-    return ret;
+```kotlin
+@DrawableRes
+private fun getImageResource(category: ShoppingItem.Category) = when (category) {
+	ShoppingItem.Category.BOOK -> R.drawable.open_book
+	ShoppingItem.Category.ELECTRONIC -> R.drawable.lightning
+	ShoppingItem.Category.FOOD -> R.drawable.groceries
 }
 ```
 Biztosítsuk egy elem hozzáadásának, valamint a teljes lista frissítésének lehetőségét az alábbi függvényekkel:
 
-```java
-public void addItem(ShoppingItem item) {
-    items.add(item);
-    notifyItemInserted(items.size() - 1);
+```kotlin
+fun addItem(item: ShoppingItem) {
+	items.add(item)
+	notifyItemInserted(items.size - 1)
 }
 
-public void update(List<ShoppingItem> shoppingItems) {
-    items.clear();
-    items.addAll(shoppingItems);
-    notifyDataSetChanged();
+fun update(shoppingItems: List<ShoppingItem>) {
+	items.clear()
+	items.addAll(shoppingItems)
+	notifyDataSetChanged()
 }
 ```
 
@@ -389,123 +353,94 @@ Szeretnék, hogy a bevásárlólista alkalmazás egyetlen `Activity`-jét teljes
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.recyclerview.widget.RecyclerView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/MainRecyclerView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    />
+    tools:listitem="@layout/item_shopping_list" />
 ```
+A `tools:listitem` paraméter segítségével az Android Studio layout megjelenítő felületén megjelenik a paraméterben átadott listaelem.
+
 Adjuk hozzá az alábbi változókat a `MainActivity`-hez és cseréljük le a projekt létrehozásakor generált `onCreate()` függvényt:
-```java
-private RecyclerView recyclerView;
-private ShoppingAdapter adapter;
+```kotlin
+    private lateinit var recyclerView: RecyclerView 
+    private lateinit var adapter: ShoppingAdapter
+    private lateinit var database: ShoppingListDatabase
 
-private ShoppingListDatabase database;
-
-@Override
-protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
-    Toolbar toolbar = findViewById(R.id.toolbar);
-    setSupportActionBar(toolbar);
-
-    FloatingActionButton fab = findViewById(R.id.fab);
-    fab.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        setSupportActionBar(toolbar)
+        fab.setOnClickListener{
             // TODO implement shopping item creation
         }
-    });
-
-    database = Room.databaseBuilder(
-        getApplicationContext(),
-        ShoppingListDatabase.class,
-        "shopping-list"
-    ).build();
-}
+        database = Room.databaseBuilder(
+            applicationContext,
+            ShoppingListDatabase::class.java,
+            "shopping-list"
+        ).build()
+    }
 ```
+A `lateinit var` kulcsszóval el tudjuk kerülni azt, hogy nullable típussal deklaráljuk ezeket a változókat, így a fordító nem fog hibát dobni forduláskor. Fontos, hogy az ilyen változók inicializálás előtti használata tilos, az futás idejű hibát fog eredményezni.
+
 A `MainActivity`-hez adjuk hozzá a  `RecyclerView`-t inicializáló kódrészletet: 
-```java
-private void initRecyclerView() {
-    recyclerView = findViewById(R.id.MainRecyclerView);
-    adapter = new ShoppingAdapter(this);
-    loadItemsInBackground();
-    recyclerView.setLayoutManager(new LinearLayoutManager(this));
-    recyclerView.setAdapter(adapter);
+```kotlin
+private fun initRecyclerView() {
+	recyclerView = MainRecyclerView
+	adapter = ShoppingAdapter(this)
+	loadItemsInBackground()
+	recyclerView.layoutManager = LinearLayoutManager(this)
+	recyclerView.adapter = adapter
 }
 
-private void loadItemsInBackground() {
-    new AsyncTask<Void, Void, List<ShoppingItem>>() {
-        
-        @Override
-        protected List<ShoppingItem> doInBackground(Void... voids) {
-            return database.shoppingItemDao().getAll();
-        }
-
-        @Override
-        protected void onPostExecute(List<ShoppingItem> shoppingItems) {
-            adapter.update(shoppingItems);
-        }
-    }.execute();
+private fun loadItemsInBackground() {
+	thread {
+		val items = database.shoppingItemDao().getAll()
+		runOnUiThread {
+			adapter.update(items)
+		}
+	}
 }
 ```
+Mivel az adatbázis kérés nem történhet az alkalmazás főszálán, a Kotlin által biztosított `thread()` segédfüggvénnyel létrehozunk egy új szálat, a kiolvasott listát pedig az Activity által biztosított `runOnUiThread` függvény segítségével a főszálon adjuk át az adapternek.
+Ez nem tökéletes megoldás, mivel ha elhagynánk az activity-t a kiolvasás során, a thread életben maradna, ami akár memóriaszivárgást is okozhat.
+Egy jobb megoldást biztosít a Kotlin `Coroutine` támogatása, ennek bemutatására azonban sajnos a labor keretei között nincsen idő.
+
 A `ShoppingAdapter` létrehozásakor a `MainActivity`-t adjuk át az adapter konstruktor paramétereként, de a `MainActivity` még nem implementálja a szükséges interfészt. Pótoljuk a hiányosságot:
 
-```java
-public class MainActivity extends AppCompatActivity
-      implements ShoppingAdapter.ShoppingItemClickListener {
+```kotlin
+class MainActivity : AppCompatActivity(), ShoppingAdapter.ShoppingItemClickListener {
       
 //...
 
-    @Override
-    public void onItemChanged(final ShoppingItem item) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            protected Boolean doInBackground(Void... voids) {
-                database.shoppingItemDao().update(item);
-                return true;
-            }
-
-            @Override
-            protected void onPostExecute(Boolean isSuccessful) {
-                Log.d("MainActivity", "ShoppingItem update was successful");
-            }
-        }.execute();
+    override fun onItemChanged(item: ShoppingItem) {
+        thread { 
+            database.shoppingItemDao().update(item)
+            Log.d("MainActivity", "ShoppingItem update was successful")
+        }
     }
 }
 ```
 
-A `loadItemsInBackground()` függvény háttérszálon betölti az adatbázisba mentett elemeket, majd a UI szálon átadja őket az *adapternek*. Ehhez az `AsyncTask` osztályt használjuk, melynek `doInBackground()` függvénye garantáltan háttérszálon fut le, az `onPostExecute()` pedig már a UI szálon hívódik meg. Az `onItemChanged()` függvény törzsét hasonló módon implementáltuk.
+Hívjuk meg az `initRecyclerView()` függvényt az `onCreate()` függvény utolsó lépéseként:
 
- Hívjuk meg az `initRecyclerView()` függvényt az `onCreate()` függvény utolsó lépéseként:
-
-```java
-@Override
-protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
-    Toolbar toolbar = findViewById(R.id.toolbar);
-    setSupportActionBar(toolbar);
-
-    FloatingActionButton fab = findViewById(R.id.fab);
-    fab.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            // TODO implement shopping item creation
-        }
-    });
-
-    database = Room.databaseBuilder(
-        getApplicationContext(),
-        ShoppingListDatabase.class,
-        "shopping-list"
-    ).build();
-
-    initRecyclerView();
+```kotlin
+override fun onCreate(savedInstanceState: Bundle?) {
+	super.onCreate(savedInstanceState)
+	setContentView(R.layout.activity_main)
+	setSupportActionBar(toolbar)
+	fab.setOnClickListener{
+		// TODO implement shopping item creation
+	}
+	database = Room.databaseBuilder(
+		applicationContext,
+		ShoppingListDatabase::class.java,
+		"shopping-list"
+	).build()
+	initRecyclerView()
 }
 ```
 Ezen a ponton az alkalmazásunk már meg tudja jeleníteni az adatbázisban tárolt vásárolni valókat, azonban sajnos még egy elemünk sincs, mivel lehetőségünk sem volt felvenni őket. A következő lépés az új elem létrehozását biztosító funkció implementálása.
@@ -513,34 +448,28 @@ Ezen a ponton az alkalmazásunk már meg tudja jeleníteni az adatbázisban tár
 ### Dialógus megvalósítása új elem hozzáadásához (1 pont)
 A dialógus megjelenítéséhez `DialogFragment`-et fogunk használni.
 
-A `hu.bme.aut.shoppinglist` package-ben hozzunk létre egy új package-et `fragments` néven. A `fragments` package-ben hozzunk létre egy új  Java osztályt, aminek a neve legyen  `NewShoppingItemDialogFragment`:
+A `hu.bme.aut.shoppinglist` package-ben hozzunk létre egy új package-et `fragments` néven. A `fragments` package-ben hozzunk létre egy új Kotlin osztályt, aminek a neve legyen  `NewShoppingItemDialogFragment`:
 
-```java
-public class NewShoppingItemDialogFragment extends DialogFragment {
-
-    public static final String TAG = "NewShoppingItemDialogFragment";
-
-    public interface NewShoppingItemDialogListener {
-        void onShoppingItemCreated(ShoppingItem newItem);
+```kotlin
+class NewShoppingItemDialogFragment : DialogFragment() {
+    interface NewShoppingItemDialogListener {
+        fun onShoppingItemCreated(newItem: ShoppingItem)
     }
 
-    private NewShoppingItemDialogListener listener;
+    private lateinit var listener: NewShoppingItemDialogListener
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        FragmentActivity activity = getActivity();
-        if (activity instanceof NewShoppingItemDialogListener) {
-            listener = (NewShoppingItemDialogListener) activity;
-        } else {
-            throw new RuntimeException("Activity must implement the NewShoppingItemDialogListener interface!");
-        }
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        listener = context as? NewShoppingItemDialogListener
+            ?: throw RuntimeException("Activity must implement the NewShoppingItemDialogListener interface!")
     }
 
-    @NonNull
-    @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
-        return new AlertDialog.Builder(requireActivity()).create();
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        return AlertDialog.Builder(requireActivity()).create()
+    }
+
+    companion object {
+        const val TAG = "NewShoppingItemDialogFragment"
     }
 }
 ```
@@ -551,21 +480,16 @@ Az osztályban definiáltunk egy `NewShoppingItemDialogListener` nevű *callback
 
 
 A megjelenő dialógust az `onCreateDialog()` függvényben állítjuk össze. Ehhez az `AlertDialog.Builder` osztályt használjuk fel:
-```java
-@NonNull
-@Override
-public Dialog onCreateDialog(Bundle savedInstanceState) {
-    return new AlertDialog.Builder(requireContext())
-            .setTitle(R.string.new_shopping_item)
-            .setView(getContentView())
-            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    // TODO implement item creation
-                }
-            })
-            .setNegativeButton(R.string.cancel, null)
-            .create();
+```kotlin
+override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+	return AlertDialog.Builder(requireContext())
+		.setTitle(R.string.new_shopping_item)
+		.setView(getContentView())
+		.setPositiveButton(R.string.ok) { dialogInterface, i ->
+			// TODO implement item creation
+		}
+		.setNegativeButton(R.string.cancel, null)
+		.create()
 }
 ```
 Az *Alt+Enter* billentyű kombinációval vegyük fel a hiányzó szöveges erőforrásokat:
@@ -577,27 +501,32 @@ Az *Alt+Enter* billentyű kombinációval vegyük fel a hiányzó szöveges erő
 | R.string.cancel            | Cancel            |
 
 Implementáljuk a dialógus tartalmát létrehozó `getContentView()` függvényt:
-```java
-private View getContentView() {
-    View contentView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_new_shopping_item, null);
-    nameEditText = contentView.findViewById(R.id.ShoppingItemNameEditText);
-    descriptionEditText = contentView.findViewById(R.id.ShoppingItemDescriptionEditText);
-    estimatedPriceEditText = contentView.findViewById(R.id.ShoppingItemEstimatedPriceEditText);
-    categorySpinner = contentView.findViewById(R.id.ShoppingItemCategorySpinner);
-    categorySpinner.setAdapter(new ArrayAdapter<>(requireContext(), 
-            android.R.layout.simple_spinner_dropdown_item, 
-            getResources().getStringArray(R.array.category_items)));
-    alreadyPurchasedCheckBox = contentView.findViewById(R.id.ShoppingItemIsPurchasedCheckBox);
-    return contentView;
+```kotlin
+private fun getContentView(): View {
+	val contentView =
+		LayoutInflater.from(context).inflate(R.layout.dialog_new_shopping_item, null)
+	nameEditText = contentView.findViewById(R.id.ShoppingItemNameEditText)
+	descriptionEditText = contentView.findViewById(R.id.ShoppingItemDescriptionEditText)
+	estimatedPriceEditText = contentView.findViewById(R.id.ShoppingItemEstimatedPriceEditText)
+	categorySpinner = contentView.findViewById(R.id.ShoppingItemCategorySpinner)
+	categorySpinner.setAdapter(
+		ArrayAdapter(
+			requireContext(),
+			android.R.layout.simple_spinner_dropdown_item,
+			resources.getStringArray(R.array.category_items)
+		)
+	)
+	alreadyPurchasedCheckBox = contentView.findViewById(R.id.ShoppingItemIsPurchasedCheckBox)
+	return contentView
 }
 ```
 Vegyük fel a hiányzó tagváltozókat:
-```java
-private EditText nameEditText;
-private EditText descriptionEditText;
-private EditText estimatedPriceEditText;
-private Spinner categorySpinner;
-private CheckBox alreadyPurchasedCheckBox;
+```kotlin
+private lateinit var nameEditText: EditText
+private lateinit var descriptionEditText: EditText
+private lateinit var estimatedPriceEditText: EditText
+private lateinit var categorySpinner: Spinner
+private lateinit var alreadyPurchasedCheckBox: CheckBox
 ```
 Hozzuk létre a dialógushoz tartozó *layoutot*. Ehhez kattintsunk a `getContentView()` függvény első sorában található `R.layout.dialog_new_shopping_item`-re, majd *Alt + Enter*-t nyomva válasszuk az első lehetőséget: *Create layout resource file …*, majd kattintsunk az *OK*-ra. 
 
@@ -696,7 +625,7 @@ Az új elemet az *OK* gomb `ClickListener`-jében fogjuk létrehozni, amennyiben
 
 Implementáljuk a dialógus pozitív gombjának eseménykezelőjét a `NewShoppingItemDialogFragment` osztály `onCreateDialog` függvényén belül:
 
-```java
+```kotlin
 @Override
 public void onClick(DialogInterface dialogInterface, int i) {
     if (isValid()) {
@@ -708,62 +637,53 @@ public void onClick(DialogInterface dialogInterface, int i) {
 Implementáljuk a hiányzó függvényeket:
 
 
-```java
-private boolean isValid() {
-    return nameEditText.getText().length() > 0;
-}
+```kotlin
+private fun isValid() = nameEditText.text.isNotEmpty()
 
-private ShoppingItem getShoppingItem() {
-    ShoppingItem shoppingItem = new ShoppingItem();
-    shoppingItem.name = nameEditText.getText().toString();
-    shoppingItem.description = descriptionEditText.getText().toString();
-    try {
-        shoppingItem.estimatedPrice = Integer.parseInt(estimatedPriceEditText.getText().toString());
-    } catch (NumberFormatException e) {
-        shoppingItem.estimatedPrice = 0;
-    }
-    shoppingItem.category = ShoppingItem.Category.getByOrdinal(categorySpinner.getSelectedItemPosition());
-    shoppingItem.isBought = alreadyPurchasedCheckBox.isChecked();
-    return shoppingItem;
-}
+private fun getShoppingItem() = ShoppingItem(
+	id = null,
+	name = nameEditText.text.toString(),
+	description = descriptionEditText.text.toString(),
+	estimatedPrice = try {
+		estimatedPriceEditText.text.toString().toInt()
+	} catch (e: java.lang.NumberFormatException) {
+		0
+	},
+	category = ShoppingItem.Category.getByOrdinal(categorySpinner.selectedItemPosition)
+		?: ShoppingItem.Category.BOOK,
+	isBought = alreadyPurchasedCheckBox.isChecked
+)
 ```
 
 A `MainActivity` `onCreate()` függvényében frissítsük a `FloatingActionButton` `OnClickListener`-jét, hogy az a fentebb megvalósított dialógust dobja fel:
-```java
-fab.setOnClickListener(new View.OnClickListener() {
-   @Override
-   public void onClick(View view) {
-       new NewShoppingItemDialogFragment().show(getSupportFragmentManager(), NewShoppingItemDialogFragment.TAG);
-   }
-});
+```kotlin
+fab.setOnClickListener{
+	NewShoppingItemDialogFragment().show(
+		supportFragmentManager,
+		NewShoppingItemDialogFragment.TAG
+	)
+}
 ```
 Frissítsük a `MainActivity`-t, hogy implementálja a dialógusban definiált interface-t:
-```java
-public class MainActivity extends AppCompatActivity
-        implements NewShoppingItemDialogFragment.NewShoppingItemDialogListener,
-        ShoppingAdapter.ShoppingItemClickListener {
+```kotlin
+class MainActivity : AppCompatActivity(), ShoppingAdapter.ShoppingItemClickListener,
+    NewShoppingItemDialogFragment.NewShoppingItemDialogListener {
 
 //...
 
-    @Override
-    public void onShoppingItemCreated(final ShoppingItem newItem) {
-        new AsyncTask<Void, Void, ShoppingItem>() {
-
-            @Override
-            protected ShoppingItem doInBackground(Void... voids) {
-                newItem.id = database.shoppingItemDao().insert(newItem);
-                return newItem;
-            }
-
-            @Override
-            protected void onPostExecute(ShoppingItem shoppingItem) {
-                adapter.addItem(shoppingItem);
-            }
-        }.execute();
-    }
-}
+	override fun onShoppingItemCreated(newItem: ShoppingItem) {
+		thread {
+			val newId = database.shoppingItemDao().insert(newItem)
+			val newShoppingItem = newItem.copy(
+				id = newId
+			)
+			runOnUiThread { 
+				adapter.addItem(newShoppingItem)
+			}
+		}
+	}
 ```
-> Figyeljük meg, hogy ebben az esetben is `AsyncTask`-ba csomagolva futtatunk adatbázis műveletet. A `Room` tiltja a UI szálon történő adatbázis műveletek futtatását. Emellett a *user experience (UX)* is romlik, ha az esetlegesen lassú műveletek megakasztják a UI szálat.
+> Figyeljük meg, hogy ebben az esetben is `thread`-be csomagolva futtatunk adatbázis műveletet. A `Room` tiltja a UI szálon történő adatbázis műveletek futtatását. Emellett a *user experience (UX)* is romlik, ha az esetlegesen lassú műveletek megakasztják a UI szálat.
 
 Frissítsük az `activity_main.xml` layout fájlban a `FloatingActionButton` ikonját:
 
