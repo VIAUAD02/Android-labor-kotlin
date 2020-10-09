@@ -64,7 +64,7 @@ Első lépésként hozzunk létre egy új _package_-et az `hu.bme.aut.android.si
 
 Hozzuk létre a szükséges konstruktort ezen belül:
 
-```java
+```kotlin
 class DrawingView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
 }
@@ -126,7 +126,7 @@ Miután létrehoztuk a rajzolás tulajdonságainak állításáért felelős `To
 
 Ezután kössük be a menüt, hogy megjelenjen a `Toolbar`-on. Ehhez a `DrawingActivity`-ben definiáljuk felül az _Activity_ `onCreateOptionsMenu()` és `onOptionsItemSelected()` függvényét az alábbi módon:
 
-```java
+```kotlin
 override fun onCreateOptionsMenu(menu: Menu?): Boolean {
     val toolbarMenu: Menu = toolbar.menu
     menuInflater.inflate(R.menu.menu_toolbar, toolbarMenu)
@@ -144,7 +144,7 @@ override fun onCreateOptionsMenu(menu: Menu?): Boolean {
     return super.onCreateOptionsMenu(menu)
 }
 ```
-```java
+```kotlin
 override fun onOptionsItemSelected(item: MenuItem): Boolean {
     return when (item.itemId) {
         R.id.menu_style_line -> {
@@ -168,7 +168,7 @@ A rajzprogramunk, ahogy az már az előző feladatban is kiderült, kétféle ra
 
 Ezen belül először hozzunk létre egy `Point` osztályt, ami értelemszerűen a pontokat fogja reprezentálni. Kétparaméteres konstruktort fogunk  létrehozni, amihez alapértékeket rendelünk.
 
-```java
+```kotlin
 class Point(var x: Float = 0F, var y: Float = 0F) {
 
 }
@@ -177,7 +177,7 @@ class Point(var x: Float = 0F, var y: Float = 0F) {
 Miután ezzel megvagyunk, hozzunk létre egy `Line` osztályt. Mivel egy vonalat a két végpontjának megadásával ki tudunk 
 rajzoltatni, így elegendő két `Point`-ot tartalmaznia az osztálynak.
 
-```java
+```kotlin
 class Line(var start: Point? = null, var end: Point? = null) {
 
 }
@@ -187,7 +187,7 @@ class Line(var start: Point? = null, var end: Point? = null) {
 
 Most, hogy megvannak a modelljeink el lehet kezdeni magának a rajzolás funkciójának fejlesztését. Ehhez a `DrawingView` osztályt fogjuk ténylegesen is elkészíteni. Először vegyünk fel az osztályon belül egy `companion object`-et, amiben a rajzolási stílus konstansait fogjuk meghatározni. Ehhez kapcsolódóan vegyünk fel egy új `field`-et az osztályunkba, amiben eltároljuk, hogy jelenleg milyen stílus van kiválasztva. 
 
-```java
+```kotlin
 companion object {
         const val DRAWINGSTYLE_LINE = 1
         const val DRAWINGSTYLE_POINT = 2
@@ -198,8 +198,7 @@ var currentDrawingStyle = DRAWINGSTYLE_LINE
 
 Ha ezek megvannak, akkor egészítsük ki a `DrawingActivity`-ben a menükezelést, úgy, hogy a megfelelő függvények hívódjanak meg. Az `onOptionsItemSelected()` függvégy megfelelő `case` ágában meg kell hívnunk a `canvas`-ra a `setDrawingStyle()` függvényt a megfelelő paraméterrel.
 
-```java
-@Override
+```kotlin
 override fun onOptionsItemSelected(item: MenuItem): Boolean {
     return when (item.itemId) {
         R.id.menu_style_line -> {
@@ -220,7 +219,7 @@ override fun onOptionsItemSelected(item: MenuItem): Boolean {
 
 A rajzolási funkció megvalósításához fel kell vennünk néhány további `field`-et a `DrawingView` osztályban, amiket a konstruktorban inicializálnunk kell. A paint objektumhoz hozzáadjuk a `lateinit` kulcsszót, hogy elég legyen az `init` blokkban inicializálnunk.
 
-```java
+```kotlin
 private lateinit var paint: Paint
 
 private var startPoint: Point? = null
@@ -253,8 +252,7 @@ private fun initLists() {
 
 Ahhoz, hogy vonalat vagy pontot tudjunk rajzolni a `View`-nkra, kezelnünk kell a felhasználótól kapott gesztusokat, mint például amikor hozzáér a kijelzőhöz, elhúzza rajta vagy felemeli róla az ujját. Szerencsére ezeket a gesztusokat nem szükséges manuálisan felismernünk és lekezelnünk, a `View` ősosztály `onTouchEvent()` függvényének felüldefiniálásával egyszerűen megolható a feladat.
 
-```java
-@Override
+```kotlin
 override fun onTouchEvent(event: MotionEvent): Boolean {
     endPoint = Point(event.x, event.y)
     when (event.action) {
@@ -290,7 +288,7 @@ Ahogy a fenti kódrészletből is látszik minden gesztusnál elmentjük az adot
 
 A rajzolás megvalósításához a `View` ősosztály `onDraw()` metódusát kell felüldefiniálnunk. Egyrészt ki kell rajzolnunk a már meglévő objektumokat (amiket a `MotionEvent.ACTION_UP` eseménynél beleraktunk a listába), valamint ki kell rajzolnunk az aktuális kezdőpont (a `MotionEvent.ACTION_DOWN` eseménytől) és a felhasználó ujja közötti vonalat.
 
-```java
+```kotlin
 override fun onDraw(canvas: Canvas) {
     super.onDraw(canvas)
     for (point in points!!) {
@@ -338,7 +336,7 @@ Az adatbáziskezelés során sok konstans jellegű változóval kell dolgoznunk,
 
 Ezen belül először is konstansként felvesszük az adatbázis nevét és verzióját is. Ha az adatbázisunk sémáján szeretnénk változtatni, akkor ez utóbbit kell inkrementálnunk, így elkerülhetjük az inkompatibilitás miatti nem kívánatos hibákat.
 
-```java
+```kotlin
 object DbConstants {
 
     const val DATABASE_NAME = "simpledrawer.db"
@@ -348,7 +346,7 @@ object DbConstants {
 
 Ezek után a `DbConstants` nevű osztályba hozzuk létre a `Point` osztályhoz a konstansokat. Az osztályokon belül létrehozunk egy `enum`-ot is, hogy könnyebben tudjuk kezelni a tábla oszlopait, majd konstansokban eltároljuk a tábla létrehozását szolgáló _SQL utasítást_ valamint a tábla nevét is. Végezetül elkészítjük azokat a függvényeket, amelyeket a tábla létrehozásakor, illetve upgrade-elésekor kell meghívni:
 
-```java
+```kotlin
 object DbConstants {
 
     const val DATABASE_NAME = "simpledrawer.db"
@@ -387,7 +385,7 @@ object DbConstants {
 
 Figyeljük meg, hogy a `DbConstants` osztályon belül létrehoztunk egy belső `Points` nevű osztályt, amiben a `Points` entitásokat tároló táblához tartozó konstans értékeket tároljuk. Amennyiben az alkalmazásunk több entitást is adatbázisban tárol, akkor érdemes az egyes osztályokhoz tartozó konstansokat külön-külön belső osztályokban tárolni. Így sokkal átláthatóbb és karbantarthatóbb lesz a kód, mint ha ömlesztve felvennénk a DbConstants-ba az összes tábla összes konstansát. Ezek a belső osztályok praktikusan ugyanolyan névvel léteznek, mint az entitás osztályok. Vegyük tehát fel hasonló módon a `Lines` nevű osztályt is:
 
-```java
+```kotlin
 object Lines {
     const val DATABASE_TABLE = "lines"
 
@@ -429,7 +427,7 @@ object Lines {
 Az adatbázis létrehozásához szükség van egy olyan segédosztályra, ami létrehozza magát az adatbázist, és azon belül inicializálja a táblákat is. Esetünkben ez lesz a `DBHelper` osztály, ami az `SQLiteOpenHelper` osztályból származik. 
 
 
-```java
+```kotlin
 class DbHelper(context: Context) :
     SQLiteOpenHelper(context, DbConstants.DATABASE_NAME, null, DbConstants.DATABASE_VERSION) {
 
@@ -451,7 +449,7 @@ class DbHelper(context: Context) :
 
 Ezen kívül szükségünk van még egy olyan segédosztályra is, ami ezt az egészet összefogja, és amivel egyszerűen tudjuk kezelni az adatbázisunkat. Ez lesz a `PersistentDataHelper`. Ebben olyan függényeket fogunk megvalósítani, mint pl. az `open()` és a `close()`, amikkel az adatbáziskapcsolatot nyithatjuk meg, illetve zárhatjuk le. Ezen kívül ebben az osztályban valósítjuk meg azokat a függvényeket is, amik az adatok adatbázisba való kiírásáért, illetve az onnan való kiolvasásáért felelősek.
 
-```java
+```kotlin
 class PersistentDataHelper(context: Context) {
     private var database: SQLiteDatabase? = null
     private val dbHelper: DbHelper = DbHelper(context)
@@ -565,7 +563,7 @@ class PersistentDataHelper(context: Context) {
 
 Ahhoz, hogy a rajzolt objektumainkat el tudjuk menteni az adatbázisba, fel kell készíteni a `DrawingView` osztályunkat arra, hogy átadja, illetve meg lehessen adni neki kívülről is őket. Ehhez a következő függvényeket kell felvennünk:
 
-```java
+```kotlin
 fun restoreObjects(points: MutableList<Point>?, lines: MutableList<Line>?) {
     this.points = points
     this.lines = lines
@@ -577,7 +575,7 @@ fun restoreObjects(points: MutableList<Point>?, lines: MutableList<Line>?) {
 
 A perzisztencia megvalósításához már csak egy feladatunk maradt hátra, mégpedig az, hogy bekössük a frissen létrehozott osztályainkat az `DrawerActivity`-nkbe. Ehhez először is példányosítanunk kell a `PersistentDataHelper` osztályunkat. Mivel az adatbázishozzáférés drága erőforrás, ezért ne felejtsük el az `Activity` `onResume()` függvényében megnyitni, az `onPause()` függvényében pedig lezárni a vele való kapcsolatot:
 
-```java
+```kotlin
 private lateinit var dataHelper: PersistentDataHelper
 
 override fun onCreate(savedInstanceState: Bundle?) {
@@ -606,7 +604,7 @@ private fun restorePersistedObjects() {
 
 Végezetül szeretnénk, hogy amikor a felhasználó ki szeretne lépni az alkalmazásból, akkor egy dialógusablak jelenjen meg, hogy biztos kilép-e, és ha igen, csak abban az esetben mentsük el a rajzolt objektumokat, és lépjünk ki az alkalmazásból. Ehhez felül kell definiálnunk az `Activity` `onBackPressed()` függvényét.
 
-```java
+```kotlin
 override fun onBackPressed() {
     AlertDialog.Builder(this)
         .setMessage(R.string.are_you_sure_want_to_exit)
