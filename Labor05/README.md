@@ -526,17 +526,17 @@ class PersistentDataHelper(context: Context) {
     }
 
     fun restoreLines(): MutableList<Line> {
-        val points: MutableList<Line> = ArrayList()
+        val lines: MutableList<Line> = ArrayList()
         val cursor: Cursor =
             database!!.query(DbConstants.Lines.DATABASE_TABLE, lineColumns, null, null, null, null, null)
         cursor.moveToFirst()
         while (!cursor.isAfterLast()) {
             val line: Line = cursorToLine(cursor)
-            points.add(line)
+            lines.add(line)
             cursor.moveToNext()
         }
         cursor.close()
-        return points
+        return lines
     }
 
     fun clearLines() {
