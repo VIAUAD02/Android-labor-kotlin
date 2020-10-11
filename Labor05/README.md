@@ -376,7 +376,7 @@ object DbConstants {
                 DbConstants.Points::class.java.name,
                 "Upgrading from version $oldVersion to $newVersion"
             )
-            database.execSQL("DROP TABLE IF EXISTS $DATABASE_TABLE")
+            database.execSQL(DATABASE_DROP)
             onCreate(database)
         }
     }
@@ -413,7 +413,7 @@ object Lines {
             DbConstants.Lines::class.java.name,
             "Upgrading from version $oldVersion to $newVersion"
         )
-        database.execSQL("DROP TABLE IF EXISTS $DATABASE_TABLE")
+        database.execSQL(DATABASE_DROP)
         onCreate(database)
     }
 }
@@ -582,9 +582,9 @@ override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_drawing)
 
-    dataHelper = PersistentDataHelper(this);
-    dataHelper.open();
-    restorePersistedObjects();
+    dataHelper = PersistentDataHelper(this)
+    dataHelper.open()
+    restorePersistedObjects()
 }
 
 override fun onResume() {
