@@ -226,13 +226,11 @@ private var startPoint: Point? = null
 
 private var endPoint: Point? = null
 
-var lines: MutableList<Line>? = null
-
-var points: MutableList<Point>? = null
+var lines: MutableList<Line> = mutableListOf()
+var points: MutableList<Point> = mutableListOf()
 
 init {
     initPaint()
-    initLists()
 }
 
 private fun initPaint() {
@@ -240,11 +238,6 @@ private fun initPaint() {
     paint.color = Color.GREEN
     paint.style = Paint.Style.STROKE
     paint.strokeWidth = 5F
-}
-
-private fun initLists() {
-    lines = mutableListOf()
-    points = mutableListOf()
 }
 ```
 
@@ -274,11 +267,11 @@ override fun onTouchEvent(event: MotionEvent): Boolean {
 }
 
 private fun addPointToTheList(startPoint: Point) {
-    points?.add(startPoint)
+    points.add(startPoint)
 }
 
 private fun addLineToTheList(startPoint: Point, endPoint: Point) {
-    lines?.add(Line(startPoint, endPoint))
+    lines.add(Line(startPoint, endPoint))
 }
 ```
 
@@ -291,10 +284,10 @@ A rajzolás megvalósításához a `View` ősosztály `onDraw()` metódusát kel
 ```kotlin
 override fun onDraw(canvas: Canvas) {
     super.onDraw(canvas)
-    for (point in points!!) {
+    for (point in points) {
         drawPoint(canvas, point)
     }
-    for (line in lines!!) {
+    for (line in lines) {
         drawLine(canvas, line.start, line.end)
     }
     when (currentDrawingStyle) {
@@ -614,8 +607,8 @@ override fun onBackPressed() {
 }
 
 private fun onExit() {
-    canvas.points?.let { dataHelper.persistPoints(it) }
-    canvas.lines?.let { dataHelper.persistLines(it) }
+    dataHelper.persistPoints(canvas.points)
+    dataHelper.persistLines(canvas.lines)
     dataHelper.close()
     finish()
 }
