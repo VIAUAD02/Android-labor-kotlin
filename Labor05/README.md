@@ -178,7 +178,7 @@ Miután ezzel megvagyunk, hozzunk létre egy `Line` osztályt. Mivel egy vonalat
 rajzoltatni, így elegendő két `Point`-ot tartalmaznia az osztálynak.
 
 ```kotlin
-class Line(var start: Point? = null, var end: Point? = null) {
+class Line(var start: Point, var end: Point) {
 
 }
 ```
@@ -510,10 +510,10 @@ class PersistentDataHelper(context: Context) {
         clearLines()
         for (line in lines) {
             val values = ContentValues()
-            values.put(DbConstants.Lines.Columns.start_x.name, line.start?.x)
-            values.put(DbConstants.Lines.Columns.start_y.name, line.start?.y)
-            values.put(DbConstants.Lines.Columns.end_x.name, line.end?.x)
-            values.put(DbConstants.Lines.Columns.end_y.name, line.end?.y)
+            values.put(DbConstants.Lines.Columns.start_x.name, line.start.x)
+            values.put(DbConstants.Lines.Columns.start_y.name, line.start.y)
+            values.put(DbConstants.Lines.Columns.end_x.name, line.end.x)
+            values.put(DbConstants.Lines.Columns.end_y.name, line.end.y)
             database!!.insert(DbConstants.Lines.DATABASE_TABLE, null, values)
         }
     }
@@ -537,16 +537,15 @@ class PersistentDataHelper(context: Context) {
     }
 
     private fun cursorToLine(cursor: Cursor): Line {
-        val line = Line()
-        val startPoint = Point()
-        startPoint.x =cursor.getFloat(DbConstants.Lines.Columns.start_x.ordinal)
-        startPoint.y =cursor.getFloat(DbConstants.Lines.Columns.start_y.ordinal)
-        line.start = startPoint
-        val endPoint = Point()
-        endPoint.x =cursor.getFloat(DbConstants.Lines.Columns.end_x.ordinal)
-        endPoint.y =cursor.getFloat(DbConstants.Lines.Columns.end_y.ordinal)
-        line.end = endPoint
-        return line
+        val startPoint = Point(
+            cursor.getFloat(DbConstants.Lines.Columns.end_x.ordinal),
+            cursor.getFloat(DbConstants.Lines.Columns.end_y.ordinal)
+        )
+        val endPoint = Point(
+            cursor.getFloat(DbConstants.Lines.Columns.end_x.ordinal),
+            cursor.getFloat(DbConstants.Lines.Columns.end_y.ordinal)
+        )
+        return Line(startPoint, endPoint)
     }
 
 }
