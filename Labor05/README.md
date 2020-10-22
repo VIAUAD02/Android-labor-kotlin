@@ -178,7 +178,7 @@ Miután ezzel megvagyunk, hozzunk létre egy `Line` osztályt. Mivel egy vonalat
 rajzoltatni, így elegendő két `Point`-ot tartalmaznia az osztálynak.
 
 ```kotlin
-class Line(var start: Point? = null, var end: Point? = null) {
+class Line(var start: Point, var end: Point) {
 
 }
 ```
@@ -226,13 +226,11 @@ private var startPoint: Point? = null
 
 private var endPoint: Point? = null
 
-var lines: MutableList<Line>? = null
-
-var points: MutableList<Point>? = null
+var lines: MutableList<Line> = mutableListOf()
+var points: MutableList<Point> = mutableListOf()
 
 init {
     initPaint()
-    initLists()
 }
 
 private fun initPaint() {
@@ -240,11 +238,6 @@ private fun initPaint() {
     paint.color = Color.GREEN
     paint.style = Paint.Style.STROKE
     paint.strokeWidth = 5F
-}
-
-private fun initLists() {
-    lines = mutableListOf()
-    points = mutableListOf()
 }
 ```
 
@@ -274,11 +267,11 @@ override fun onTouchEvent(event: MotionEvent): Boolean {
 }
 
 private fun addPointToTheList(startPoint: Point) {
-    points?.add(startPoint)
+    points.add(startPoint)
 }
 
 private fun addLineToTheList(startPoint: Point, endPoint: Point) {
-    lines?.add(Line(startPoint, endPoint))
+    lines.add(Line(startPoint, endPoint))
 }
 ```
 
@@ -291,10 +284,10 @@ A rajzolás megvalósításához a `View` ősosztály `onDraw()` metódusát kel
 ```kotlin
 override fun onDraw(canvas: Canvas) {
     super.onDraw(canvas)
-    for (point in points!!) {
+    for (point in points) {
         drawPoint(canvas, point)
     }
-    for (line in lines!!) {
+    for (line in lines) {
         drawLine(canvas, line.start, line.end)
     }
     when (currentDrawingStyle) {
@@ -517,10 +510,10 @@ class PersistentDataHelper(context: Context) {
         clearLines()
         for (line in lines) {
             val values = ContentValues()
-            values.put(DbConstants.Lines.Columns.start_x.name, line.start?.x)
-            values.put(DbConstants.Lines.Columns.start_y.name, line.start?.y)
-            values.put(DbConstants.Lines.Columns.end_x.name, line.end?.x)
-            values.put(DbConstants.Lines.Columns.end_y.name, line.end?.y)
+            values.put(DbConstants.Lines.Columns.start_x.name, line.start.x)
+            values.put(DbConstants.Lines.Columns.start_y.name, line.start.y)
+            values.put(DbConstants.Lines.Columns.end_x.name, line.end.x)
+            values.put(DbConstants.Lines.Columns.end_y.name, line.end.y)
             database!!.insert(DbConstants.Lines.DATABASE_TABLE, null, values)
         }
     }
@@ -544,16 +537,15 @@ class PersistentDataHelper(context: Context) {
     }
 
     private fun cursorToLine(cursor: Cursor): Line {
-        val line = Line()
-        val startPoint = Point()
-        startPoint.x =cursor.getFloat(DbConstants.Lines.Columns.start_x.ordinal)
-        startPoint.y =cursor.getFloat(DbConstants.Lines.Columns.start_y.ordinal)
-        line.start = startPoint
-        val endPoint = Point()
-        endPoint.x =cursor.getFloat(DbConstants.Lines.Columns.end_x.ordinal)
-        endPoint.y =cursor.getFloat(DbConstants.Lines.Columns.end_y.ordinal)
-        line.end = endPoint
-        return line
+        val startPoint = Point(
+            cursor.getFloat(DbConstants.Lines.Columns.end_x.ordinal),
+            cursor.getFloat(DbConstants.Lines.Columns.end_y.ordinal)
+        )
+        val endPoint = Point(
+            cursor.getFloat(DbConstants.Lines.Columns.end_x.ordinal),
+            cursor.getFloat(DbConstants.Lines.Columns.end_y.ordinal)
+        )
+        return Line(startPoint, endPoint)
     }
 
 }
@@ -614,8 +606,8 @@ override fun onBackPressed() {
 }
 
 private fun onExit() {
-    canvas.points?.let { dataHelper.persistPoints(it) }
-    canvas.lines?.let { dataHelper.persistLines(it) }
+    dataHelper.persistPoints(canvas.points)
+    dataHelper.persistLines(canvas.lines)
     dataHelper.close()
     finish()
 }
