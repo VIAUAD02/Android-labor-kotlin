@@ -416,7 +416,7 @@ Hozzunk létre a hiányzó *dimen* erőforrásokat (*Alt+Enter* -> *Create dimen
 
 A felület gyakorlatilag egy `ViewPager`-t tartalmaz, melyben két `Fragment`-et fogunk megjeleníteni. A `PagerTabStrip` biztosítja a *Tab* jellegű fejlécet.
 
-A `DetailsActivity.java`  kódja legyen a következő:
+A `DetailsActivity.kt`  kódja legyen a következő:
 
 ```kotlin
 class DetailsActivity : AppCompatActivity() {
