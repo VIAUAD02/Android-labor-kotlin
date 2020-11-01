@@ -363,7 +363,7 @@ Igény szerint vizsgáljuk meg a laborvezetővel az `AddCityDialogFragment` impl
 - Hogyan kerül beállításra az egyedi layout a `DialogFragment`-ben?
 - Hogyan térünk vissza a beírt városnévvel?
 
-> Szorgalmi feladat otthonra: az alkalmazás ne engedje a város létrehozsát, ha a városnév mező üres!
+> Szorgalmi feladat otthonra: az alkalmazás ne engedje a város létrehozását, ha a városnév mező üres!
 > Tipp: [http://stackoverflow.com/questions/13746412/prevent-dialogfragment-from-dismissing-when-button-is-clicked](http://stackoverflow.com/questions/13746412/prevent-dialogfragment-from-dismissing-when-button-is-clicked)
 
 Végül egészítsük ki a `CityActivity` `initFab(…)` függvényét úgy, hogy a gombra kattintva jelenjen meg az új dialógus:
