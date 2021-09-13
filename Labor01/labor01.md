@@ -255,10 +255,9 @@ Például részletes információt kaphatunk a memória használatról:
 1.  Az új alkalmazást futtassák emulátoron (akinek saját készüléke van, az is próbálja ki)!
 2.  Helyezzenek breakpointot a kódba, és debug módban indítsák az alkalmazást! (Érdemes megyfigyelni, hogy most másik Gradle Task fut a képernyő alján.)
 3.  Indítsanak hívást és küldjenek SMS-t az emulátorra! Mit tapasztalnak?
-4.  Indítsanak hívást és küldjenek SMS-t az emulátorról! Mit tapasztalnak?
-5.  Tekintse át az Android Profiler nézet funkcióit a laborvezető segítségével!
-6.  Változtassa a készülék pozícióját az emulátor megfelelő paneljének segítségével!
-7.  Vizsgálja meg az elindított `HelloWorld` projekt nyitott szálait, memóriafoglalását!
-8.  Vizsgálja meg a Logcat panel tartalmát!
-9.  Vizsgálja meg az Analyze -> Inspect code eredményét!
-10.  Keresse ki a létrehozott `HelloWorld` projekt mappáját és a build könyvtáron belül vizsgálja meg az `.apk` állomány tartalmát! Hol található a lefordított kód? 
+4.  Tekintse át az Android Profiler nézet funkcióit a laborvezető segítségével!
+5.  Változtassa a készülék pozícióját az emulátor megfelelő paneljének segítségével!
+6.  Vizsgálja meg az elindított `HelloWorld` projekt nyitott szálait, memóriafoglalását!
+7.  Vizsgálja meg a Logcat panel tartalmát!
+8.  Vizsgálja meg az Analyze -> Inspect code eredményét!
+9.  Keresse ki a létrehozott `HelloWorld` projekt mappáját és a build könyvtáron belül vizsgálja meg az `.apk` állomány tartalmát! Hol található a lefordított kód? 
