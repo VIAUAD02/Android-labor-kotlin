@@ -31,7 +31,7 @@ IMSc:
 
 ## Projekt létrehozása
 
-Hozzunk létre egy új Android projektet! Válasszuk az Empty Activity sablont (Telefon és Tablet fül). Az alkalmazás neve legyen `PublicTransport`, a package név pedig `hu.bme.aut.publictransport` legyen. 	
+Hozzunk létre egy új Android projektet! Válasszuk az Empty Activity sablont (Telefon és Tablet fül). Az alkalmazás neve legyen `PublicTransport`, a package név pedig `hu.bme.aut.publictransport` legyen.     
 
 Nyelvnek a Kotlin-t válasszuk, és használhatjuk az alapértelmezett 15-ös minimum SDK szintet.
 
@@ -64,7 +64,7 @@ Hozzunk létre egy új XML fájlt a `drawable` mappában `splash_background.xml`
 
 Jelen esetben egyetlen képet teszünk ide, de további `item`-ek felvételével komplexebb dolgokat is összeállíthatnánk itt. Tipikus megoldás például egy egyszínű háttér beállítása, amin az alkalmazás ikonja látszik.
 
-Nyissuk meg a `values/styles.xml` fájlt. Ez definiálja az alkalmazásban használt különböző témákat. A splash képernyőhöz egy új témát fogunk létrehozni, amelyben az előbb létrehozott drawable-t állítjuk be az alkalmazásablakunk hátterének (mivel ez látszik valójában, amíg nem töltött be a UI többi része). Ezt így tehetjük meg:
+Nyissuk meg a `values/themes.xml` fájlt. Ez definiálja az alkalmazásban használt különböző témákat. A splash képernyőhöz egy új témát fogunk létrehozni, amelyben az előbb létrehozott drawable-t állítjuk be az alkalmazásablakunk hátterének (mivel ez látszik valójában, amíg nem töltött be a UI többi része). Ezt így tehetjük meg:
 
 ```xml
 <style name="SplashTheme" parent="Theme.AppCompat.NoActionBar">
@@ -187,21 +187,81 @@ Ha most kipróbáljuk az alkalmazást, már látjuk a beállítások hatását:
 - A legtöbb billentyűzettel az első mezőhöz most már megjelenik a `@` szimbólum, a másodiknál pedig csak számokat írhatunk be.
 - Mivel a második mezőt jelszó típusúnak állítottuk be, a karakterek a megszokott módon elrejtésre kerülnek a beírásuk után.
 
-Még egy dolgunk van ezen a képernyőn, az input ellenőrzése. Ezt a `LoginActivity.kt` fájlban tehetjük meg. A layout-unkat alkotó View-kat az `onCreate` függvényben lévő `setContentView` hívás után tudjuk először elérni. Kotlinban az XML-ben beállított ID-kkal lesz referenciánk a szükséges View-kra, ezekkel már tudjuk kezelni tudjuk a gomb lenyomását:
+Még egy dolgunk van ezen a képernyőn, az input ellenőrzése. Ezt a `LoginActivity.kt` fájlban tehetjük meg. A layout-unkat alkotó View-kat az `onCreate` függvényben lévő `setContentView` hívás után tudjuk először elérni. Kotlinban az XML-ben beállított ID-kkal lesz referenciánk a szükséges View-kra, de előbb be kell állítanunk a view binding-ot a projekten.:
+
+Ehhez első lépésként vegyük fel a module szintű build.gradle fájlba az alábbi sorokat:
+
+```
+android {
+    ...
+    buildFeatures {
+        viewBinding true
+    }
+}
+```
+
+Ha ez megvan, akkor a view binding engedélyezve van a modul számára. Ebben az esetben a modul minden egyes XML layout fájljához generálódik egy úgynevezett binding osztály. Minden binding osztály tartalmaz referenciát az adott XML layout erőforrás gyökér elemére és az összes ID-val rendelkező view-ra. A generált osztály neve úgy áll elő, hogy az XML layout nevét Pascal formátumba alakítja a rendszer és a végére illeszti, hogy `Binding`. Azaz például a `result_profile.xml` erőforrásfájlból az alábbi binding osztály generálódik: `ResultProfileBinding`.
+
+```xml
+<LinearLayout ... >
+    <TextView android:id="@+id/name" />
+    <ImageView android:cropToPadding="true" />
+    <Button android:id="@+id/button"
+        android:background="@drawable/rounded_button" />
+</LinearLayout>
+```
+A generált osztálynak két mezője van. A `name` id-val rendelkező `TextView` és a `button` id-jú `Button`. A layout-ban szereplő ImageView-nak nincs id-ja, ezért nem szerepel a binding osztályban.
+
+Minden generált osztály tartalmaz egy `getRoot()` metódust, amely direkt referenciaként szolgál a layout gyökerére. A példában a `getRoot()` metódus a `LinearLayout`-tal tér vissza.
+
+Ahhoz, hogy használni tudjuk a view binding-ot Activity-kben, az alábbi lépéseket kell elvégezni az Activity `onCreate()` metódusában:
+1. Meg kell hívni a generált osztály statikus `inflate()` metódusát. Ez egy létrehoz egy példányt a generált osztályból.
+2. Referenciát kell szerezni a gyökérelemre. Ezt kétféleképpen is megtehetjük. Vagy meghívjuk a `getRoot()` metódust, vagy a Kotlin property syntax-ot használva.
+3. Át kell adni a gyökérelemet a `setContentView()` metódusnak.
 
 ```kotlin
-btnLogin.setOnClickListener {
-    when {
-        etEmailAddress.text.toString().isEmpty() -> {
-            etEmailAddress.requestFocus()
-            etEmailAddress.error = "Please enter your email address"
-        }
-        etPassword.text.toString().isEmpty() -> {
-            etPassword.requestFocus()
-            etPassword.error = "Please enter your password"
-        }
-        else -> {
-            // TODO login
+private lateinit var binding: ResultProfileBinding
+
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    binding = ResultProfileBinding.inflate(layoutInflater)
+    val view = binding.root
+    setContentView(view)
+}
+```
+
+Így már elérjük a layout fájlban definiált view-kat.
+
+```kotlin
+binding.name.text = viewModel.name
+binding.button.setOnClickListener { viewModel.userClicked() }
+```
+
+A saját kódunkban az Activity ennek mintájára az alábbiak szerint alakul:
+
+```kotlin
+private lateinit var binding: ActivityLoginBinding
+
+override fun onCreate(savedInstanceState: Bundle?) {
+    Thread.sleep(1000)
+    setTheme(R.style.Theme_PublicTransport2)
+    super.onCreate(savedInstanceState)
+    binding = ActivityLoginBinding.inflate(layoutInflater)
+    setContentView(binding.root)
+
+    binding.btnLogin.setOnClickListener {
+        when {
+            binding.etEmailAddress.text.toString().isEmpty() -> {
+                binding.etEmailAddress.requestFocus()
+                binding.etEmailAddress.error = "Please enter your email address"
+            }
+            binding.etPassword.text.toString().isEmpty() -> {
+                binding.etPassword.requestFocus()
+                binding.etPassword.error = "Please enter your password"
+            }
+            else -> {
+                // TODO login
+            }
         }
     }
 }
@@ -220,7 +280,7 @@ A következő képernyőn a felhasználó a különböző járműtípusok közü
 Hozzunk ehhez létre egy új Activity-t (New -> Activity -> Empty Activity), nevezzük el `ListActivity`-nek. Most, hogy ez már létezik, menjünk vissza a `LoginActivity` kódjában lévő TODO-hoz, és indítsuk ott el ezt az új Activity-t:
 
 ```kotlin
-btnLogin.setOnClickListener {
+binding.btnLogin.setOnClickListener {
     when {
     ...
         else -> {
@@ -470,10 +530,10 @@ companion object {
 }
 ```
 
-Most már létrehozhatjuk a gombok listener-jeit, amelyek elindítják a `DetailsActivity`-t, extrának beletéve a kiválasztott típust. Az első gomb listenerjének beállítását így tehetjük meg:
+Most már létrehozhatjuk a gombok listener-jeit, amelyek elindítják a `DetailsActivity`-t, extrának beletéve a kiválasztott típust. Az első gomb listenerjének beállítását így tehetjük meg a view binding beállítása után:
 
 ```kotlin
-btnBus.setOnClickListener {
+binding.btnBus.setOnClickListener {
     val intent = Intent(this, DetailsActivity::class.java)
     intent.putExtra(DetailsActivity.KEY_TRANSPORT_TYPE, TYPE_BUS)
     startActivity(intent)
@@ -491,7 +551,7 @@ val transportType = this.intent.getIntExtra(KEY_TRANSPORT_TYPE, -1)
 Ezt az átadott számot még le kell képeznünk egy stringre, ehhez vegyünk fel egy egyszerű segédfüggvényt:
 
 ```kotlin
-private fun getTypeString(transportType: Int): String? {
+private fun getTypeString(transportType: Int): String {
     return when (transportType) {
         ListActivity.TYPE_BUS -> "Bus pass"
         ListActivity.TYPE_TRAIN -> "Train pass"
@@ -504,7 +564,7 @@ private fun getTypeString(transportType: Int): String? {
 Végül pedig az `onCreate` függvénybe visszatérve meg kell keresnünk a megfelelő `TextView`-t, és beállítani a szövegének a függvény által visszaadott értéket:
 
 ```kotlin
-tvTicketType.text = getTypeString(transportType)
+binding.tvTicketType.text = getTypeString(transportType)
 ```
 
 Próbáljuk ki az alkalmazást! A `DetailsActivity`-ben meg kell jelennie a hozzáadott beállításoknak, illetve a tetején a megfelelő jegy típusnak.
@@ -544,9 +604,9 @@ companion object {
 Ezeket az adatokat a `DetailsActivity`-ben kell összekészítenünk és beleraknunk az `Intent`-be. Ehhez adjunk hozzá a vásárlás gombhoz egy listener-t a `DetailsActivity` `onCreate` függvényében:
 
 ```kotlin
-btnPurchase.setOnClickListener {
+binding.btnPurchase.setOnClickListener {
     val typeString = getTypeString(transportType)
-    val dateString = getDateFrom(dpStartDate) + " - " + getDateFrom(dpEndDate)
+    val dateString = getDateFrom(binding.dpStartDate) + " - " + getDateFrom(binding.dpEndDate)
 
     val intent = Intent(this, PassActivity::class.java)
     intent.putExtra(PassActivity.KEY_TYPE_STRING, typeString)
@@ -605,8 +665,8 @@ Most már elkészíthetjük a `PassActivity`-t. Kezdjük a layout-jával (`activ
 Az Activity Kotlin kódjában pedig csak a két `TextView` szövegét kell az `Intent`-ben megkapott értékekre állítanunk (természetesen az `onCreate` függvényben):
 
 ```kotlin
-tvTicketType.text = intent.getStringExtra(KEY_TYPE_STRING)
-tvDates.text = intent.getStringExtra(KEY_DATE_STRING)
+binding.tvTicketType.text = intent.getStringExtra(KEY_TYPE_STRING)
+binding.tvDates.text = intent.getStringExtra(KEY_DATE_STRING)
 ```
 
 ## Önálló feladat
