@@ -227,7 +227,6 @@ Lehetőség van felosztani a szerkesztőablakot, ehhez kattinsunk egy megnyitott
 
 A laborvezető segítségével állítsák be a következő hasznos funkciókat:
 
-*   kis- nagybetű érzékenység kikapcsolása a kódkiegészítőben (settingsben keresés: *sensitive*)
 *   "laptop mód" ki- és bekapcsolása (*File -> Power Save Mode*)
 *   sorszámozás bekapcsolása (kód melletti részen bal oldalt: jobb egérgomb, *Show Line Numbers*)
 *   beírás közbeni autoimport bekapcsolása (settingsben keresés: import, utána Editor/Auto import)
