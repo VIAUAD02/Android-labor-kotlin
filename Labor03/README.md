@@ -59,7 +59,7 @@ Hozzon létre egy AndroidWallet nevű projektet Android Studioban:
 - válasszuk az Empty Activity-t;
 - Application name: AndroidWallet;
 - package name: hu.bme.aut.androidwallet ;
-- Minumum API level: 16; 
+- Minumum API level: 21; 
 - Finish, és várjuk meg amíg a Studio mindent legenerál, ez első alkalomkor
 valamivel hosszabb időt vesz igénybe.
 
@@ -78,7 +78,7 @@ saját készüléket használni).
 ### Menü elkészítése
 
 - `res/values/strings.xml`: egy új stringet veszünk fel a már ott megtalálhatókhoz hasonlóan
-action_delete_all néven és Delete All tartalommal, illetve az action_settingset töröljük.
+action_delete_all néven és Delete All tartalommal.
 
 ![](assets/resources.png)
 
@@ -172,7 +172,7 @@ az android:orientation="vertical" attribútomot.
 ```
 
 - Az első nem gyökér LinearLayoutba felvesszük a két EditTextet, id-t adunk nekik,
-hogy a java kódból is egyszerűen elérjük őket, beállítjuk az elhelyezkedésüket súlyozás
+hogy a kotlin kódból is egyszerűen elérjük őket, beállítjuk az elhelyezkedésüket súlyozás
 alapján.  Mindkettő legyen singleLine, így nem fog szétcsúszni a UI, illetve érdemes a
 megnevezés EditTextnek egy actionNext imeOptionst adni, így a felhasználó
 billentyűzete a következő EditTextre fog ugrani az Enter/Ok billentyűre.
@@ -330,16 +330,20 @@ ha valamelyik mező nincs kitöltve!
 - Először készítsük el az eseménykezelő vázát. Figyeljük meg, hogy kódot adunk át paraméterként,
 ezért nem kerek zárójeleket, hanem kapcsos zárójelpárt használunk. Szintén fontos, hogy ha
 Kotlinban készítünk Android alkalmazást, akkor a layoutban definiált komponenseket az ID-jükkel
-el tudjuk érni, mintha deklarált változók lennének:
+el tudjuk érni. Ehhez először meg kell csinálnunk a viewBinding-ot az activity-n. Nem szabad elfelejteni,
+hogy a modul szintű build.gradle fájlban fel kell vennünk a viewBinding buildOption-t. Ezt követően az activity:
 
 ```kotlin
-override fun onCreate(savedInstanceState: Bundle?) {
-	super.onCreate(savedInstanceState)
-	setContentView(R.layout.activity_main)
+private lateinit var binding: ActivityMainBinding
 
-	save_button.setOnClickListener {
-		// TODO: ide jön az eseménykezelő kód
-	}
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    binding = ActivityMainBinding.inflate(layoutInflater)
+    setContentView(binding.root)
+
+    binding.saveButton.setOnClickListener {
+        // TODO: ide jön az eseménykezelő kód
+    }
 }
 ```
 
@@ -348,16 +352,22 @@ override fun onCreate(savedInstanceState: Bundle?) {
 mondjuk `Hiányos adatok!`:
 
 ```kotlin
-if (salary_name.text.toString().isEmpty() || salary_amount.text.toString().isEmpty()) {
-	Toast.makeText(this, R.string.warn_message, Toast.LENGTH_LONG).show()
-	return@setOnClickListener
+if (binding.salaryName.text.toString().isEmpty() || binding.salaryAmount.text.toString().isEmpty()) {
+    Toast.makeText(this, R.string.warn_message, Toast.LENGTH_LONG).show()
+    return@setOnClickListener
 }
 ```
 
-- Ezután egy row itemet inflate-elünk a korábban elkészített XML-ből:
+- Vegyünk fel egy osztály szintű tagváltozót:
 
 ```kotlin
-val rowItem = LayoutInflater.from(this).inflate(R.layout.salary_row, null)
+private lateinit var rowBinding: SalaryRowBinding
+```
+
+- Ezután egy row itemet inflate-elünk a korábban elkészített XML-ből az OnCreate metódus eseménykezelőjében:
+
+```kotlin
+rowBinding = SalaryRowBinding.inflate(layoutInflater)
 ```
 
 - Az Itemnek a különböző részeit, tehát az ikont, nevet, összeget kitöltjük.
@@ -366,9 +376,9 @@ Az ikont a ToggleButton állapota alapján kell kitöltenünk, és ehhez az
 mappába is be kell illesztenünk.
 
 ```kotlin
-rowItem.salary_direction_icon.setImageResource(if (expense_or_income.isChecked) R.drawable.expense else R.drawable.income)
-rowItem.row_salary_name.text = salary_name.text.toString()
-rowItem.row_salary_amount.text = salary_amount.text.toString()
+rowBinding.salaryDirectionIcon.setImageResource(if (binding.expenseOrIncome.isChecked) R.drawable.expense else R.drawable.income)
+rowBinding.rowSalaryName.text = binding.salaryName.text.toString()
+rowBinding.rowSalaryAmount.text = binding.salaryAmount.text.toString()
 ```
 
 - Végül hozzáadjuk a listához (LinearLayout) az új view-okat, de ehhez a LinearLayoutnak egy
@@ -384,7 +394,7 @@ ID-t is kell adnunk, hogy hivatkozni tudjunk rá:
 ```
  
 ```kotlin
-list_of_rows.addView(rowItem)
+binding.listOfRows.addView(rowBinding.root)
 ```
 
 És ezen a ponton akár futtathatjuk is az alkalmazásunk. Próbáljuk is ki! 
@@ -399,13 +409,13 @@ az `onOptionsItemSelected()` metódusban, most ezt szükséges kiegészítenünk
 
 ```kotlin
 override fun onOptionsItemSelected(item: MenuItem): Boolean {
-	return when (item.itemId) {
-		R.id.delete_all -> {
-			list_of_rows.removeAllViews()
-			true
-		}
-		else -> super.onOptionsItemSelected(item)
-	}
+    return when (item.itemId) {
+        R.id.delete_all -> {
+            binding.listOfRows.removeAllViews()
+            true
+        }
+        else -> super.onOptionsItemSelected(item)
+    }
 }
 ```
 
