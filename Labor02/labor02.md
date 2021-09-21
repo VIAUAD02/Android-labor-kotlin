@@ -244,7 +244,7 @@ private lateinit var binding: ActivityLoginBinding
 
 override fun onCreate(savedInstanceState: Bundle?) {
     Thread.sleep(1000)
-    setTheme(R.style.Theme_PublicTransport2)
+    setTheme(R.style.Theme_PublicTransport)
     super.onCreate(savedInstanceState)
     binding = ActivityLoginBinding.inflate(layoutInflater)
     setContentView(binding.root)
