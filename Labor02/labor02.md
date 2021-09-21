@@ -104,7 +104,7 @@ Most már futtathatjuk az alkalmazást, és betöltés közben látnunk kell a b
 ```kotlin
 override fun onCreate(savedInstanceState: Bundle?) {
     Thread.sleep(1000)
-    setTheme(R.style.AppTheme)
+    setTheme(R.style.SplashTheme)
     ...
 }
 ```
