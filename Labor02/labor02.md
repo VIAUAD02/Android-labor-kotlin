@@ -72,12 +72,12 @@ Nyissuk meg a `values/themes.xml` fájlt. Ez definiálja az alkalmazásban haszn
 </style>
 ```
 
-Ennek használatához az alkalmazásunk manifest fájlját (`AndroidManifest.xml`) kell módosítanunk. Ezt megnyitva láthatjuk, hogy jelenleg a teljes alkalmazás az `AppTheme` nevű témát használja.
+Ennek használatához az alkalmazásunk manifest fájlját (`AndroidManifest.xml`) kell módosítanunk. Ezt megnyitva láthatjuk, hogy jelenleg a teljes alkalmazás az `Theme.PublicTransport` nevű témát használja.
 
 ```xml
 <application
     ...
-    android:theme="@style/AppTheme" >
+    android:theme="@style/Theme.PublicTransport" >
 ```
 
 Mi ezt nem akarjuk megváltoztatni, hanem csak a `LoginActivity`-nek akarunk egy új témát adni. Ezt így tehetjük meg:
@@ -94,7 +94,7 @@ Mivel a betöltés után már nem lesz szükségünk erre a háttérre, a `Login
 
 ```kotlin
 override fun onCreate(savedInstanceState: Bundle?) {
-    setTheme(R.style.AppTheme)
+    setTheme(R.style.Theme_PublicTransport)
     ...
 }
 ```
