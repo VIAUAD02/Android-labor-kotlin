@@ -33,7 +33,7 @@ IMSc:
 
 Hozzunk létre egy új Android projektet! Válasszuk az Empty Activity sablont (Telefon és Tablet fül). Az alkalmazás neve legyen `PublicTransport`, a package név pedig `hu.bme.aut.publictransport` legyen.     
 
-Nyelvnek a Kotlin-t válasszuk, és használhatjuk az alapértelmezett 15-ös minimum SDK szintet.
+Nyelvnek a Kotlin-t válasszuk, és használhatjuk az alapértelmezett 16-os minimum SDK szintet.
 
 Miután lefutott a varázsló, létrejött a már ismert projekt szerkezet, aminek két legfőbb forrásfájlja a `MainActivity.kt` és `activity_main.xml`. Nevezzük át őket `LoginActivity`-re és `activity_login.xml`-re. Ezt az adott fájlon jobbegér -> Refactor -> Rename opcióval lehet megtenni. Ekkor nem csak a fájlnevek változnak, hanem a kódban használt referenciák is frissülnek.
 
