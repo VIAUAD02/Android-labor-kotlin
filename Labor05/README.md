@@ -51,6 +51,7 @@ Az alkalmazásunkban az egyszerűség kedvéért most csak az álló módot tám
 ```xml
 <activity
     android:name=".DrawingActivity"
+    android:exported="true"
     android:screenOrientation="portrait">
 ```
 
@@ -90,7 +91,7 @@ Miután létrehoztuk a `DrawingView`-t, nyissuk meg a `res/layout/activity_drawi
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="@color/colorPrimary" />
+        android:background="?android:colorPrimary" />
 </RelativeLayout>
 ```
 
@@ -124,17 +125,40 @@ Miután létrehoztuk a rajzolás tulajdonságainak állításáért felelős `To
 </menu>
 ```
 
-Ezután kössük be a menüt, hogy megjelenjen a `Toolbar`-on. Ehhez a `DrawingActivity`-ben definiáljuk felül az _Activity_ `onCreateOptionsMenu()` és `onOptionsItemSelected()` függvényét az alábbi módon:
+Ezután kössük be a menüt, hogy megjelenjen a `Toolbar`-on.
+Ahhoz, hogy elérjük a létrehozott erőforrásokat kódból, view binding-ra lesz szükségünk. A modul szintű gradle file-ba fegyük fel a következő elemet. ***Ne felejtsünk*** el a `Sync` now gombra kattintani a módosítást követően.
+
+```groovy
+android {
+    ...
+    buildFeatures {
+        viewBinding true
+    }
+}
+```
+Ezután hozzunk létre egy binding adattagot a `DrawingActivity`-n belül `toolbarBinding` néven és inicializáljuk az `onCreate` függvényben.
+
+```kotlin
+private lateinit var binding: ActivityDrawingBinding
+
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    binding = ActivityDrawingBinding.inflate(layoutInflater)
+    setContentView(binding.root)
+}
+```
+
+Már csak annyi van hátra, hogy a `DrawingActivity`-ben felüldefiniáljuk  az _Activity_ `onCreateOptionsMenu()` és `onOptionsItemSelected()` függvényét az alábbi módon:
 
 ```kotlin
 override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-    val toolbarMenu: Menu = toolbar.menu
+    val toolbarMenu: Menu = binding.toolbar.menu
     menuInflater.inflate(R.menu.menu_toolbar, toolbarMenu)
     for (i in 0 until toolbarMenu.size()) {
         val menuItem: MenuItem = toolbarMenu.getItem(i)
         menuItem.setOnMenuItemClickListener { item -> onOptionsItemSelected(item) }
         if (menuItem.hasSubMenu()) {
-            val subMenu: SubMenu = menuItem.getSubMenu()
+            val subMenu: SubMenu = menuItem.subMenu
             for (j in 0 until subMenu.size()) {
                 subMenu.getItem(j)
                     .setOnMenuItemClickListener { item -> onOptionsItemSelected(item) }
@@ -169,18 +193,20 @@ A rajzprogramunk, ahogy az már az előző feladatban is kiderült, kétféle ra
 Ezen belül először hozzunk létre egy `Point` osztályt, ami értelemszerűen a pontokat fogja reprezentálni. Kétparaméteres konstruktort fogunk  létrehozni, amihez alapértékeket rendelünk.
 
 ```kotlin
-class Point(var x: Float = 0F, var y: Float = 0F) {
-
-}
+data class Point(
+    var x: Float = 0F,
+    var y: Float = 0F
+)
 ```
 
 Miután ezzel megvagyunk, hozzunk létre egy `Line` osztályt. Mivel egy vonalat a két végpontjának megadásával ki tudunk 
 rajzoltatni, így elegendő két `Point`-ot tartalmaznia az osztálynak.
 
 ```kotlin
-class Line(var start: Point? = null, var end: Point? = null) {
-
-}
+data class Line(
+    var start: Point,
+    var end: Point
+)
 ```
 
 #### A rajzolási stílus beállítása
@@ -189,25 +215,25 @@ Most, hogy megvannak a modelljeink el lehet kezdeni magának a rajzolás funkci�
 
 ```kotlin
 companion object {
-        const val DRAWINGSTYLE_LINE = 1
-        const val DRAWINGSTYLE_POINT = 2
+        const val DRAWING_STYLE_LINE = 1
+        const val DRAWING_STYLE_POINT = 2
 }
 
-var currentDrawingStyle = DRAWINGSTYLE_LINE
+var currentDrawingStyle = DRAWING_STYLE_LINE
 ```
 
-Ha ezek megvannak, akkor egészítsük ki a `DrawingActivity`-ben a menükezelést, úgy, hogy a megfelelő függvények hívódjanak meg. Az `onOptionsItemSelected()` függvégy megfelelő `case` ágában meg kell hívnunk a `canvas`-ra a `setDrawingStyle()` függvényt a megfelelő paraméterrel.
+Ha ezek megvannak, akkor egészítsük ki a `DrawingActivity`-ben a menükezelést, úgy, hogy a megfelelő függvények hívódjanak meg. Az `onOptionsItemSelected()` függvény megfelelő `case` ágában meg kell hívnunk a `canvas`-ra a `setDrawingStyle()` függvényt a megfelelő paraméterrel.
 
 ```kotlin
 override fun onOptionsItemSelected(item: MenuItem): Boolean {
     return when (item.itemId) {
         R.id.menu_style_line -> {
-            canvas.currentDrawingStyle = DrawingView.DRAWINGSTYLE_LINE
+            binding.canvas.currentDrawingStyle = DrawingView.DRAWING_STYLE_LINE
             item.isChecked = true
             true
         }
         R.id.menu_style_point -> {
-            canvas.currentDrawingStyle = DrawingView.DRAWINGSTYLE_POINT
+            binding.canvas.currentDrawingStyle = DrawingView.DRAWING_STYLE_POINT
             item.isChecked = true
             true
         }
@@ -217,7 +243,7 @@ override fun onOptionsItemSelected(item: MenuItem): Boolean {
 ```
 #### Inicializálások
 
-A rajzolási funkció megvalósításához fel kell vennünk néhány további `field`-et a `DrawingView` osztályban, amiket a konstruktorban inicializálnunk kell. A paint objektumhoz hozzáadjuk a `lateinit` kulcsszót, hogy elég legyen az `init` blokkban inicializálnunk.
+A rajzolási funkció megvalósításához fel kell vennünk néhány további `field`-et a `DrawingView` osztályban, amiket a konstruktorban inicializálnunk kell. A paint objektumhoz hozzáadjuk a `lateinit` kulcsszót, hogy elég legyen az `init` blokkban inicializálnunk. A `Point` osztály import-ja során használjuk a korábban definiált osztályunkat.
 
 ```kotlin
 private lateinit var paint: Paint
@@ -226,13 +252,11 @@ private var startPoint: Point? = null
 
 private var endPoint: Point? = null
 
-var lines: MutableList<Line>? = null
-
-var points: MutableList<Point>? = null
+var lines: MutableList<Line> = mutableListOf()
+var points: MutableList<Point> = mutableListOf()
 
 init {
     initPaint()
-    initLists()
 }
 
 private fun initPaint() {
@@ -241,11 +265,6 @@ private fun initPaint() {
     paint.style = Paint.Style.STROKE
     paint.strokeWidth = 5F
 }
-
-private fun initLists() {
-    lines = mutableListOf()
-    points = mutableListOf()
-}
 ```
 
 #### Gesztusok kezelése
@@ -253,6 +272,7 @@ private fun initLists() {
 Ahhoz, hogy vonalat vagy pontot tudjunk rajzolni a `View`-nkra, kezelnünk kell a felhasználótól kapott gesztusokat, mint például amikor hozzáér a kijelzőhöz, elhúzza rajta vagy felemeli róla az ujját. Szerencsére ezeket a gesztusokat nem szükséges manuálisan felismernünk és lekezelnünk, a `View` ősosztály `onTouchEvent()` függvényének felüldefiniálásával egyszerűen megolható a feladat.
 
 ```kotlin
+@SuppressLint("ClickableViewAccessibility")
 override fun onTouchEvent(event: MotionEvent): Boolean {
     endPoint = Point(event.x, event.y)
     when (event.action) {
@@ -261,8 +281,8 @@ override fun onTouchEvent(event: MotionEvent): Boolean {
         }
         MotionEvent.ACTION_UP -> {
             when (currentDrawingStyle) {
-                DRAWINGSTYLE_POINT -> addPointToTheList(endPoint!!)
-                DRAWINGSTYLE_LINE -> addLineToTheList(startPoint!!, endPoint!!)
+                DRAWING_STYLE_POINT -> addPointToTheList(endPoint!!)
+                DRAWING_STYLE_LINE -> addLineToTheList(startPoint!!, endPoint!!)
             }
             startPoint = null
             endPoint = null
@@ -274,11 +294,11 @@ override fun onTouchEvent(event: MotionEvent): Boolean {
 }
 
 private fun addPointToTheList(startPoint: Point) {
-    points?.add(startPoint)
+    points.add(startPoint)
 }
 
 private fun addLineToTheList(startPoint: Point, endPoint: Point) {
-    lines?.add(Line(startPoint, endPoint))
+    lines.add(Line(startPoint, endPoint))
 }
 ```
 
@@ -291,15 +311,15 @@ A rajzolás megvalósításához a `View` ősosztály `onDraw()` metódusát kel
 ```kotlin
 override fun onDraw(canvas: Canvas) {
     super.onDraw(canvas)
-    for (point in points!!) {
+    for (point in points) {
         drawPoint(canvas, point)
     }
-    for (line in lines!!) {
+    for (line in lines) {
         drawLine(canvas, line.start, line.end)
     }
     when (currentDrawingStyle) {
-        DRAWINGSTYLE_POINT -> drawPoint(canvas, endPoint)
-        DRAWINGSTYLE_LINE -> drawLine(canvas, startPoint, endPoint)
+        DRAWING_STYLE_POINT -> drawPoint(canvas, endPoint)
+        DRAWING_STYLE_LINE -> drawLine(canvas, startPoint, endPoint)
     }
 }
 
@@ -332,7 +352,7 @@ Hozzunk létre egy új _package_-et az `hu.bme.aut.android.simpledrawer`-en bel�
 
 #### Táblák definiálása
 
-Az adatbáziskezelés során sok konstans jellegű változóval kell dolgoznunk, mint például a táblákban lévő oszlopok nevei, táblák neve, adatbázis fájl neve, séma létrehozó és törlő szkiptek, stb. Ezeket érdemes egy közös helyen tárolni, így szerkesztéskor vagy új entitás bevezetésekor nem kell a forrásfájlok között ugrálni, valamint egyszerűbb a teljes adatbázist létrehozó és törlő szkripteket generálni. Hozzunk létre egy új _singleton_ osztályt az `object` kulcsszóval az `sqlite`_package_-en belül `DbConstants`néven. 
+Az adatbáziskezelés során sok konstans jellegű változóval kell dolgoznunk, mint például a táblákban lévő oszlopok nevei, táblák neve, adatbázis fájl neve, séma létrehozó és törlő szkiptek, stb. Ezeket érdemes egy közös helyen tárolni, így szerkesztéskor vagy új entitás bevezetésekor nem kell a forrásfájlok között ugrálni, valamint egyszerűbb a teljes adatbázist létrehozó és törlő szkripteket generálni. Hozzunk létre egy új _singleton_ osztályt az `object` kulcsszóval az `sqlite` _package_-en belül `DbConstants` néven. 
 
 Ezen belül először is konstansként felvesszük az adatbázis nevét és verzióját is. Ha az adatbázisunk sémáján szeretnénk változtatni, akkor ez utóbbit kell inkrementálnunk, így elkerülhetjük az inkompatibilitás miatti nem kívánatos hibákat.
 
@@ -356,16 +376,16 @@ object DbConstants {
         const val DATABASE_TABLE = "points"
 
         enum class Columns {
-            _id, coord_x, coord_y
+            ID, COORD_X, COORD_Y
         }
 
-        private val DATABASE_CREATE ="""create table if not exists $DATABASE_TABLE (
-            ${Columns._id.name} integer primary key autoincrement,
-            ${Columns.coord_x.name} real not null,
-            ${Columns.coord_y} real not null
+        private val DATABASE_CREATE = """create table if not exists $DATABASE_TABLE (
+            ${Columns.ID.name} integer primary key autoincrement,
+            ${Columns.COORD_X.name} real not null,
+            ${Columns.COORD_Y} real not null
             );"""
 
-        const val DATABASE_DROP = "drop table if exists $DATABASE_TABLE;"
+        private const val DATABASE_DROP = "drop table if exists $DATABASE_TABLE;"
 
         fun onCreate(database: SQLiteDatabase) {
             database.execSQL(DATABASE_CREATE)
@@ -373,10 +393,10 @@ object DbConstants {
 
         fun onUpgrade(database: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
             Log.w(
-                DbConstants.Points::class.java.name,
+                Points::class.java.name,
                 "Upgrading from version $oldVersion to $newVersion"
             )
-            database.execSQL("DROP TABLE IF EXISTS $DATABASE_TABLE")
+            database.execSQL(DATABASE_DROP)
             onCreate(database)
         }
     }
@@ -390,19 +410,19 @@ object Lines {
     const val DATABASE_TABLE = "lines"
 
     enum class Columns {
-        _id, start_x, start_y, end_x, end_y
+        ID, START_X, START_Y, END_X, END_Y
     }
 
     private val DATABASE_CREATE ="""create table if not exists $DATABASE_TABLE (
-        ${Columns._id.name} integer primary key autoincrement,
-        ${Columns.start_x} real not null,
-        ${Columns.start_y} real not null,
-        ${Columns.end_x} real not null,
-        ${Columns.end_y} real not null
+    ${Columns.ID.name} integer primary key autoincrement,
+    ${Columns.START_X} real not null,
+    ${Columns.START_Y} real not null,
+    ${Columns.END_X} real not null,
+    ${Columns.END_Y} real not null
 
-        );"""
+    );"""
 
-    const val DATABASE_DROP = "drop table if exists $DATABASE_TABLE;"
+    private const val DATABASE_DROP = "drop table if exists $DATABASE_TABLE;"
 
     fun onCreate(database: SQLiteDatabase) {
         database.execSQL(DATABASE_CREATE)
@@ -410,21 +430,21 @@ object Lines {
 
     fun onUpgrade(database: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         Log.w(
-            DbConstants.Lines::class.java.name,
+            Lines::class.java.name,
             "Upgrading from version $oldVersion to $newVersion"
         )
-        database.execSQL("DROP TABLE IF EXISTS $DATABASE_TABLE")
+        database.execSQL(DATABASE_DROP)
         onCreate(database)
     }
 }
 ```
 
-Érdemes megfigyelni továbbá azt, hogy az osztályokat nem a class kulcsszóval deklaráltuk. Helyette az `object`-et használjuk, amivel a Kotlin nyelv azt biztosítja számunkra, hogy a `DbConstants` és a benne lévő `Points` és `Lines` osztály is singletonként viselkednek, azaz az alkalmazás futtatásakor létrejön belőlük egy példány, további példányokat pedig nem lehet létrehozni belőlük.
+Érdemes megfigyelni továbbá azt is, hogy az osztályokat nem a class kulcsszóval deklaráltuk. Helyette az `object`-et használjuk, amivel a Kotlin nyelv azt biztosítja számunkra, hogy a `DbConstants` és a benne lévő `Points` és `Lines` osztály is singletonként viselkednek, azaz az alkalmazás futtatásakor létrejön belőlük egy példány, további példányokat pedig nem lehet létrehozni belőlük.
 
 
 #### A segédosztályok létrehozása
 
-Az adatbázis létrehozásához szükség van egy olyan segédosztályra, ami létrehozza magát az adatbázist, és azon belül inicializálja a táblákat is. Esetünkben ez lesz a `DBHelper` osztály, ami az `SQLiteOpenHelper` osztályból származik. 
+Az adatbázis létrehozásához szükség van egy olyan segédosztályra, ami létrehozza magát az adatbázist, és azon belül inicializálja a táblákat is. Esetünkben ez lesz a `DBHelper` osztály, ami az `SQLiteOpenHelper` osztályból származik. Vegyük fel ezt is az `sqlite` _package_-be.
 
 
 ```kotlin
@@ -447,25 +467,25 @@ class DbHelper(context: Context) :
 }
 ```
 
-Ezen kívül szükségünk van még egy olyan segédosztályra is, ami ezt az egészet összefogja, és amivel egyszerűen tudjuk kezelni az adatbázisunkat. Ez lesz a `PersistentDataHelper`. Ebben olyan függényeket fogunk megvalósítani, mint pl. az `open()` és a `close()`, amikkel az adatbáziskapcsolatot nyithatjuk meg, illetve zárhatjuk le. Ezen kívül ebben az osztályban valósítjuk meg azokat a függvényeket is, amik az adatok adatbázisba való kiírásáért, illetve az onnan való kiolvasásáért felelősek.
+Ezen kívül szükségünk van még egy olyan segédosztályra is, ami ezt az egészet összefogja, és amivel egyszerűen tudjuk kezelni az adatbázisunkat. Ez lesz a `PersistentDataHelper` továbbra is az `sqlite` _package_-ben. Ebben olyan függényeket fogunk megvalósítani, mint pl. az `open()` és a `close()`, amikkel az adatbáziskapcsolatot nyithatjuk meg, illetve zárhatjuk le. Ezen kívül ebben az osztályban valósítjuk meg azokat a függvényeket is, amik az adatok adatbázisba való kiírásáért, illetve az onnan való kiolvasásáért felelősek. Figyeljünk rá, hogy a saját Point osztályunkat válasszuk az _import_ során.
 
 ```kotlin
 class PersistentDataHelper(context: Context) {
     private var database: SQLiteDatabase? = null
     private val dbHelper: DbHelper = DbHelper(context)
 
-    private val pointColumns = arrayOf<String>(
-        DbConstants.Points.Columns._id.name,
-        DbConstants.Points.Columns.coord_x.name,
-        DbConstants.Points.Columns.coord_y.name
+    private val pointColumns = arrayOf(
+        DbConstants.Points.Columns.ID.name,
+        DbConstants.Points.Columns.COORD_X.name,
+        DbConstants.Points.Columns.COORD_Y.name
     )
 
-    private val lineColumns = arrayOf<String>(
-        DbConstants.Lines.Columns._id.name,
-        DbConstants.Lines.Columns.start_x.name,
-        DbConstants.Lines.Columns.start_y.name,
-        DbConstants.Lines.Columns.end_x.name,
-        DbConstants.Lines.Columns.end_y.name
+    private val lineColumns = arrayOf(
+        DbConstants.Lines.Columns.ID.name,
+        DbConstants.Lines.Columns.START_X.name,
+        DbConstants.Lines.Columns.START_Y.name,
+        DbConstants.Lines.Columns.END_X.name,
+        DbConstants.Lines.Columns.END_Y.name
 
     )
 
@@ -482,8 +502,8 @@ class PersistentDataHelper(context: Context) {
         clearPoints()
         for (point in points) {
             val values = ContentValues()
-            values.put(DbConstants.Points.Columns.coord_x.name, point.x)
-            values.put(DbConstants.Points.Columns.coord_y.name, point.y)
+            values.put(DbConstants.Points.Columns.COORD_X.name, point.x)
+            values.put(DbConstants.Points.Columns.COORD_Y.name, point.y)
             database!!.insert(DbConstants.Points.DATABASE_TABLE, null, values)
         }
     }
@@ -493,7 +513,7 @@ class PersistentDataHelper(context: Context) {
         val cursor: Cursor =
             database!!.query(DbConstants.Points.DATABASE_TABLE, pointColumns, null, null, null, null, null)
         cursor.moveToFirst()
-        while (!cursor.isAfterLast()) {
+        while (!cursor.isAfterLast) {
             val point: Point = cursorToPoint(cursor)
             points.add(point)
             cursor.moveToNext()
@@ -508,8 +528,8 @@ class PersistentDataHelper(context: Context) {
 
     private fun cursorToPoint(cursor: Cursor): Point {
         val point = Point()
-        point.x =cursor.getFloat(DbConstants.Points.Columns.coord_x.ordinal)
-        point.y =cursor.getFloat(DbConstants.Points.Columns.coord_y.ordinal)
+        point.x =cursor.getFloat(DbConstants.Points.Columns.COORD_X.ordinal)
+        point.y =cursor.getFloat(DbConstants.Points.Columns.COORD_Y.ordinal)
         return point
     }
 
@@ -517,26 +537,26 @@ class PersistentDataHelper(context: Context) {
         clearLines()
         for (line in lines) {
             val values = ContentValues()
-            values.put(DbConstants.Lines.Columns.start_x.name, line.start?.x)
-            values.put(DbConstants.Lines.Columns.start_y.name, line.start?.y)
-            values.put(DbConstants.Lines.Columns.end_x.name, line.end?.x)
-            values.put(DbConstants.Lines.Columns.end_y.name, line.end?.y)
+            values.put(DbConstants.Lines.Columns.START_X.name, line.start.x)
+            values.put(DbConstants.Lines.Columns.START_Y.name, line.start.y)
+            values.put(DbConstants.Lines.Columns.END_X.name, line.end.x)
+            values.put(DbConstants.Lines.Columns.END_Y.name, line.end.y)
             database!!.insert(DbConstants.Lines.DATABASE_TABLE, null, values)
         }
     }
 
     fun restoreLines(): MutableList<Line> {
-        val points: MutableList<Line> = ArrayList()
+        val lines: MutableList<Line> = ArrayList()
         val cursor: Cursor =
             database!!.query(DbConstants.Lines.DATABASE_TABLE, lineColumns, null, null, null, null, null)
         cursor.moveToFirst()
-        while (!cursor.isAfterLast()) {
+        while (!cursor.isAfterLast) {
             val line: Line = cursorToLine(cursor)
-            points.add(line)
+            lines.add(line)
             cursor.moveToNext()
         }
         cursor.close()
-        return points
+        return lines
     }
 
     fun clearLines() {
@@ -544,16 +564,15 @@ class PersistentDataHelper(context: Context) {
     }
 
     private fun cursorToLine(cursor: Cursor): Line {
-        val line = Line()
-        val startPoint = Point()
-        startPoint.x =cursor.getFloat(DbConstants.Lines.Columns.start_x.ordinal)
-        startPoint.y =cursor.getFloat(DbConstants.Lines.Columns.start_y.ordinal)
-        line.start = startPoint
-        val endPoint = Point()
-        endPoint.x =cursor.getFloat(DbConstants.Lines.Columns.end_x.ordinal)
-        endPoint.y =cursor.getFloat(DbConstants.Lines.Columns.end_y.ordinal)
-        line.end = endPoint
-        return line
+        val startPoint = Point(
+            cursor.getFloat(DbConstants.Lines.Columns.START_X.ordinal),
+            cursor.getFloat(DbConstants.Lines.Columns.START_Y.ordinal)
+        )
+        val endPoint = Point(
+            cursor.getFloat(DbConstants.Lines.Columns.END_X.ordinal),
+            cursor.getFloat(DbConstants.Lines.Columns.END_Y.ordinal)
+        )
+        return Line(startPoint, endPoint)
     }
 
 }
@@ -565,8 +584,8 @@ Ahhoz, hogy a rajzolt objektumainkat el tudjuk menteni az adatbázisba, fel kell
 
 ```kotlin
 fun restoreObjects(points: MutableList<Point>?, lines: MutableList<Line>?) {
-    this.points = points
-    this.lines = lines
+    points?.also { this.points = it }
+    lines?.also { this.lines = it }
     invalidate()
 }
 ```
@@ -580,11 +599,12 @@ private lateinit var dataHelper: PersistentDataHelper
 
 override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_drawing)
+    binding = ActivityDrawingBinding.inflate(layoutInflater)
+    setContentView(binding.root)
 
-    dataHelper = PersistentDataHelper(this);
-    dataHelper.open();
-    restorePersistedObjects();
+    dataHelper = PersistentDataHelper(this)
+    dataHelper.open()
+    restorePersistedObjects()
 }
 
 override fun onResume() {
@@ -598,24 +618,24 @@ override fun onPause() {
 }
 
 private fun restorePersistedObjects() {
-    canvas.restoreObjects(dataHelper.restorePoints(), dataHelper.restoreLines())
+    binding.canvas.restoreObjects(dataHelper.restorePoints(), dataHelper.restoreLines())
 }
 ```
 
-Végezetül szeretnénk, hogy amikor a felhasználó ki szeretne lépni az alkalmazásból, akkor egy dialógusablak jelenjen meg, hogy biztos kilép-e, és ha igen, csak abban az esetben mentsük el a rajzolt objektumokat, és lépjünk ki az alkalmazásból. Ehhez felül kell definiálnunk az `Activity` `onBackPressed()` függvényét.
+Végezetül szeretnénk, hogy amikor a felhasználó ki szeretne lépni az alkalmazásból, akkor egy dialógusablak jelenjen meg, hogy biztos kilép-e, és ha igen, csak abban az esetben mentsük el a rajzolt objektumokat, és lépjünk ki az alkalmazásból. Ehhez felül kell definiálnunk az `Activity` `onBackPressed()` függvényét. Az _AlertDialog_-nál válasszuk az _anroidx.appcompat.app_-ba tartozó verziót.
 
 ```kotlin
 override fun onBackPressed() {
     AlertDialog.Builder(this)
         .setMessage(R.string.are_you_sure_want_to_exit)
-        .setPositiveButton(R.string.ok) { dialogInterface, i -> onExit() }
+        .setPositiveButton(R.string.ok) { _, _ -> onExit() }
         .setNegativeButton(R.string.cancel, null)
         .show()
 }
 
 private fun onExit() {
-    canvas.points?.let { dataHelper.persistPoints(it) }
-    canvas.lines?.let { dataHelper.persistLines(it) }
+    dataHelper.persistPoints(binding.canvas.points)
+    dataHelper.persistLines(binding.canvas.lines)
     dataHelper.close()
     finish()
 }
