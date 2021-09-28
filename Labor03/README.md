@@ -331,7 +331,15 @@ ha valamelyik mező nincs kitöltve!
 ezért nem kerek zárójeleket, hanem kapcsos zárójelpárt használunk. Szintén fontos, hogy ha
 Kotlinban készítünk Android alkalmazást, akkor a layoutban definiált komponenseket az ID-jükkel
 el tudjuk érni. Ehhez először meg kell csinálnunk a viewBinding-ot az activity-n. Nem szabad elfelejteni,
-hogy a modul szintű build.gradle fájlban fel kell vennünk a viewBinding buildOption-t. Ezt követően az activity:
+hogy a modul szintű build.gradle fájlban fel kell vennünk a viewBinding buildFeature-t. 
+
+```
+buildFeatures {
+    viewBinding true
+}
+```
+
+Ezt követően az activity:
 
 ```kotlin
 private lateinit var binding: ActivityMainBinding
