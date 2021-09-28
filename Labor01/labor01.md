@@ -4,11 +4,11 @@
 
 ### iMSC pontok
 
-iMSC pontok a ZH-n, a nagyHF-n és várhatóan néhány laboron szerezhetők. Az első laboron nem szerezhető iMSc pont. A későbbi laborokon, ha lesz ilyen lehetőség, az iMSc-s feladatok megoldásait az AUT portálra kell feltölteni ugyanúgy a megfelelő labor alá, de érdemes megjegyzésként odaírni, hogy mely iMSc feladatok lettek megoldva. Ha egy feladatban kérdések szerepelnek, a pontok csak akkor fogadhatók el, ha mellékletben egy igényes jegyzőkönyv is szerepel a kérdésekre vonatkozó válaszokkal. iMSc pont szerzésére bármely hallgató jogosult, aki az előtte lévő feladatokkal már végzett (laborvezető ellenőrzi a haladást).
+iMSC pontok a ZH-n, a nagyHF-n és várhatóan néhány laboron szerezhetők. Az első laboron nem szerezhető iMSc pont. A későbbi laborokon, ha lesz ilyen lehetőség, az iMSc-s feladatok megoldásait a [Moodle](https://edu.vik.bme.hu/) portálra kell feltölteni ugyanúgy a megfelelő labor alá, de érdemes megjegyzésként odaírni, hogy mely iMSc feladatok lettek megoldva. Ha egy feladatban kérdések szerepelnek, a pontok csak akkor fogadhatók el, ha mellékletben egy igényes jegyzőkönyv is szerepel a kérdésekre vonatkozó válaszokkal. iMSc pont szerzésére bármely hallgató jogosult, aki az előtte lévő feladatokkal már végzett (laborvezető ellenőrzi a haladást).
 
 ### Laborok értékelése
 
-Minden labor leírása tartalmazza, hogy mi a megoldandó feladat. A megoldásokat minden esetben a Moodle portálra kell feltölteni.
+Minden labor leírása tartalmazza, hogy mi a megoldandó feladat. A megoldásokat minden esetben a [Moodle](https://edu.vik.bme.hu/) portálra kell feltölteni.
 
 ### Beugró
 
@@ -227,7 +227,6 @@ Lehetőség van felosztani a szerkesztőablakot, ehhez kattinsunk egy megnyitott
 
 A laborvezető segítségével állítsák be a következő hasznos funkciókat:
 
-*   kis- nagybetű érzékenység kikapcsolása a kódkiegészítőben (settingsben keresés: *sensitive*)
 *   "laptop mód" ki- és bekapcsolása (*File -> Power Save Mode*)
 *   sorszámozás bekapcsolása (kód melletti részen bal oldalt: jobb egérgomb, *Show Line Numbers*)
 *   beírás közbeni autoimport bekapcsolása (settingsben keresés: import, utána Editor/Auto import)

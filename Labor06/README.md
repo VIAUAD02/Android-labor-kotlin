@@ -626,12 +626,11 @@ Az új elemet az *OK* gomb `ClickListener`-jében fogjuk létrehozni, amennyiben
 Implementáljuk a dialógus pozitív gombjának eseménykezelőjét a `NewShoppingItemDialogFragment` osztály `onCreateDialog` függvényén belül:
 
 ```kotlin
-@Override
-public void onClick(DialogInterface dialogInterface, int i) {
-    if (isValid()) {
-        listener.onShoppingItemCreated(getShoppingItem());
+.setPositiveButton(R.string.ok) { dialogInterface, i ->
+	if (isValid()) {
+	    listener.onShoppingItemCreated(getShoppingItem())
+	}
     }
-}
 ```
 
 Implementáljuk a hiányzó függvényeket:
