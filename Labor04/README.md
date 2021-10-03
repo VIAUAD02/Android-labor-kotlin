@@ -131,15 +131,39 @@ Ne felejtsük el a szövegeket kiszervezni erőforrásba! (a szövegen állva `A
 
 Hozzunk létre a két új Empty Activity-t (`ProfileActivity` és `HolidayActivity`)
 
+Hivatkozzuk be a projekthez a view binding-ot. A modul szintű gradle fájlba addjuk hozzá:
+
+```
+android {
+    ...
+    buildFeatures {
+        viewBinding true
+    }
+}
+```
+
+Használjuk a view binding-ot a MenuActivity-ben:
+
+```kotlin
+private lateinit var binding : ActivityMenuBinding
+
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    binding = ActivityMenuBinding.inflate(layoutInflater)
+    setContentView(binding.root)
+        
+}
+```
+
 A MenuActivity Kotlin fájljában (`MenuActivity.kt`) rendeljünk a gombok lenyomásához eseménykezelőt az onCreate metódusban:
 
 ```kotlin
-btnProfile.setOnClickListener {
+binding.btnProfile.setOnClickListener {
     val profileIntent = Intent(this, ProfileActivity::class.java)
     startActivity(profileIntent)
 }
 
-btnHoliday.setOnClickListener { 
+binding.btnHoliday.setOnClickListener { 
     val holidayIntent = Intent(this, HolidayActivity::class.java)
     startActivity(holidayIntent)
 }
@@ -187,29 +211,43 @@ A két Fragmentben származzunk le a Fragment osztályból (androidx-es verziót
 
 `MainProfileFragment.kt`:
 ```kotlin
-class MainProfileFragment : Fragment(R.layout.profile_main){
+class MainProfileFragment : Fragment(){
+    private lateinit var binding: ProfileMainBinding
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        binding = ProfileMainBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val person = DataManager.person
-        tvName.text = person.name
-        tvEmail.text = person.email
-        tvAddress.text = person.address
+        binding.tvName.text = person.name
+        binding.tvEmail.text = person.email
+        binding.tvAddress.text = person.address
     }
 }
 ```
 
 `DetailsProfileFragment.kt`:
 ```kotlin
-class DetailsProfileFragment : Fragment(R.layout.profile_detail){
+class DetailsProfileFragment : Fragment(){
+    private lateinit var binding: ProfileDetailBinding
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        binding = ProfileDetailBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val person = DataManager.person
-        tvId.text = person.id
-        tvSSN.text = person.socialSecurityNumber
-        tvTaxId.text = person.taxId
-        tvRegistrationId.text = person.registrationId
+        binding.tvId.text = person.id
+        binding.tvSSN.text = person.socialSecurityNumber
+        binding.tvTaxId.text = person.taxId
+        binding.tvRegistrationId.text = person.registrationId
     }
 }
 ```
@@ -454,11 +492,14 @@ Ha a library fájljai letöltődtek, akkor írjuk meg az Activity layout-ját (`
 Írjuk meg az Activity kódját (`HolidayActivity.kt`):
 ```kotlin
 class HolidayActivity : AppCompatActivity() {
+    private lateinit var binding : ActivityHolidayBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_holiday)
+        binding = ActivityHolidayBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        btnTakeHoliday.setOnClickListener {
+        binding.btnTakeHoliday.setOnClickListener {
             //TODO: DatePickerDialogFragment megjelenítése
         }
         loadHolidays()
@@ -474,8 +515,8 @@ class HolidayActivity : AppCompatActivity() {
         dataSet.colors = ColorTemplate.MATERIAL_COLORS.toList()
 
         val data = PieData(dataSet)
-        chartHoliday.data = data
-        chartHoliday.invalidate()
+        binding.chartHoliday.data = data
+        binding.chartHoliday.invalidate()
     }
 }
 ```
@@ -524,9 +565,9 @@ A laborvezetővel vizsgáljuk meg az `OnDateSelectedListener` interface működ�
 
 Állítsuk be a gomb eseménykezelőjét a HolidayActivity-ben, hogy lenyomáskor jelenítse meg a dátumválasztót:
 ```kotlin
-btnTakeHoliday.setOnClickListener {
-	DatePickerDialogFragment().show(supportFragmentManager, "DATE_TAG")
-}
+binding.btnTakeHoliday.setOnClickListener {
+            DatePickerDialogFragment().show(supportFragmentManager, "DATE_TAG")
+        }
 ```
 
 A kiválasztott dátum feldolgozásához implementáljuk az OnDateSelectedListener-t a HolidayActivity-ben:
