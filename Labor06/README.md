@@ -7,11 +7,6 @@ Az alkalmazás a termékek listáját [`RecyclerView`](https://developer.android
 
 > ORM = [Object-relational mapping](https://en.wikipedia.org/wiki/Object-relational_mapping)
 
-<p align="center">
-<img src="./assets/shopping_list.png" width="320">
-<img src="./assets/new_item.png" width="320">
-</p>
-
 Felhasznált technológiák:
 - [`Activity`](https://developer.android.com/guide/components/activities/intro-activities)
 - [`Fragment`](https://developer.android.com/guide/components/fragments)
@@ -27,12 +22,17 @@ Az alkalmazás egy `Activity`-ből áll, ami bevásárlólista elemeket jelenít
 A dialóguson az *OK* gombra kattintva a dialógus eltűnik, a benne megadott adatokkal létrejön egy lista elem a listában. Az egyes lista elemeken `CheckBox` segítségével jelezhetjük, hogy már megvásároltuk őket. A kuka ikonra kattintva törölhetjük az adott elemet.
 A menüben található „Remove all” opcióval az összes lista elemet törölhetjük.
 
+<p align="center">
+<img src="./assets/shopping_list.png" width="320">
+<img src="./assets/new_item.png" width="320">
+</p>
+
 ## Laborfeladatok
 A labor során az alábbi feladatokat a laborvezető segítségével, illetve a jelölt feladatokat önállóan kell megvalósítani.
 
 1. Perzisztens adattárolás megvalósítása: 1 pont
 2. Lista megjelenítése`RecyclerView`-val: 2 pont
-3. Dialógus megvalósítása új elem hozzáadásához: 1pont
+3. Dialógus megvalósítása új elem hozzáadásához: 1 pont
 4. **Önálló feladat** (törlés megvalósítása): 1 pont
 
 ### IMSc pontok
@@ -44,27 +44,50 @@ A laborfeladatok sikeres befejezése után az IMSc feladatokat megoldva 2 IMSc p
 * Elemek szerkesztése: 1 pont
 
 ### Projekt létrehozása
-Hozzunk létre egy új projektet Android Studioban! Első `Activity`-ként válasszuk a *Basic Activity* lehetőséget, a projekt neve legyen `ShoppingList`, a *Package name* `hu.bme.aut.shoppinglist`, minimum SDK-nak pedig válasszuk az **API 21**-et és kattintsunk a *Finish* gombra!
-Töltsük le és tömörítsük ki [az alkalmazáshoz szükséges erőforrásokat](https://github.com/VIAUAC00/Android-labor-kotlin/tree/master/Labor06/downloads/res.zip), majd másoljuk be őket a projekt *app/src/main/res* mappájába (Studio-ban a *res* mappán állva *Ctrl+V*)!
-Töröljük a FirstFragment, SecondFragment osztályokat, a hozzájuk tartozó layoutokat, illetve a `res` mappában a `navigation` könyvtárat.
+
+Első lépésként indítsuk el az Android Studio-t, majd:
+1. Hozzunk létre egy új projektet, válasszuk az *Empty Activity* lehetőséget.
+2. A projekt neve legyen `ShoppingList`, a kezdő package pedig `hu.bme.aut.android.shoppinglist`
+3. Nyelvnek válasszuk a *Kotlin*-t.
+4. A minimum API szint legyen **API21: Android 5.0**.
+5. A *Use legacy android.support libraries* pontot **ne** pipáljuk be.
+
+Amint elkészült a projektünk, kapcsoljuk is be a `ViewBinding`-ot. Az `app` modulhoz tartozó `build.gradle` fájlban az `android` tagen belülre illesszük be az engedélyezést (Ezek után kattintsunk jobb felül a `Sync Now` gombra.):
+```gradle
+android {
+    ...
+    buildFeatures {
+        viewBinding true
+    }
+}
+```
+
+A kezdő Activity neve maradhat MainActivity, valamint töltsük le és tömörítsük ki [az alkalmazáshoz szükséges erőforrásokat](https://github.com/VIAUAC00/Android-labor-kotlin/tree/master/Labor06/downloads/res.zip), majd másoljuk be őket a projekt *app/src/main/res* mappájába (Studio-ban a *res* mappán állva *Ctrl+V*)!
 
 ### Perzisztens adattárolás megvalósítása (1 pont)
 Az adatok perzisztens tárolásához a `Room` könyvtárat fogjuk használni.
 
 #### Room hozzáadása a projekthez
-Az *app* modulhoz tartozó `build.gradle` fájlban a `dependencies` blokkhoz adjuk hozzá a `Room` libraryt:
-```gradle
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
-apply plugin: 'kotlin-kapt'
-//...
 
+Kezdjük azzal, hogy az app modulhoz tartozó build.gradle fájlban a pluginokhoz hozzáírunk egy sort (bekapcsoljuk a Kotlin Annotation Processort - KAPT):
+```gradle
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'kotlin-kapt'
+}
+
+//...
+```
+
+Ezt követően, szintén ebben a `build.gradle` fájlban a `dependencies` blokkhoz adjuk hozzá a `Room` libraryt:
+```gradle
 dependencies {
     //...
-    def room_version = "2.2.5"
-    implementation "androidx.room:room-runtime:$room_version"
-    kapt "androidx.room:room-compiler:$room_version"
+    def room_version = "2.3.0"
+    implementation 'androidx.room:room-runtime:$room_version'
+    implementation 'androidx.room:room-ktx:$room_version'
+    kapt 'androidx.room:room-compiler:$room_version'
 }
 ```
 Ezután kattintsunk a jobb felső sarokban megjelenő **Sync now** gombra.
@@ -110,7 +133,11 @@ data class ShoppingItem(
     }
 }
 ```
-Látható, hogy az osztályon, az osztály változóin, valamint az osztályon belül lévő *enum* osztály függvényein *annotációkat* helyeztünk el. Az `@Entity` jelzi a `Room` kódgenerátorának, hogy ennek az osztálynak a példányai adatbázis rekordoknak fognak megfelelni egy táblában és hogy az egyes változói felelnek majd meg a tábla oszlopainak. A `@ColumnInfo` *annotációval* megadjuk, hogy mi legyen a tagváltozónak megfelelő oszlop neve. `@PrimaryKey`-jel jelöljük a tábla egyszerű kulcs attribútumát. A `@TypeConverter` annotációval megoldható az, hogy összetett objektumokat is tudjunk menteni és visszaolvasni.
+Látható, hogy az osztályon, az osztály változóin, valamint az osztályon belül lévő *enum* osztály függvényein *annotációkat* helyeztünk el. Az `@Entity` jelzi a `Room` kódgenerátorának, hogy ennek az osztálynak a példányai adatbázis rekordoknak fognak megfelelni egy táblában és hogy az egyes változói felelnek majd meg a tábla oszlopainak. A `@ColumnInfo` *annotációval* megadjuk, hogy mi legyen a tagváltozónak megfelelő oszlop neve. `@PrimaryKey`-jel jelöljük a tábla egyszerű kulcs attribútumát.
+
+Az osztályban létrehoztunk egy `enum`-ot is, amivel egy kategóriát akarunk kódolni. Az enum-nak van két statikus metódusa, `@TypeConverter` annotációval ellátva. Ezekkel oldható meg, hogy az adatbázis akár összetett adatszerkezeteket is tárolni tudjon. Ezek a függvények felelősek azért, hogy egy felhasználói típust lefordítsanak egy, az adatbázis által támogatott típusra, illetve fordítva. Megfigyelhető továbbá, hogy ezen függvények el vannak látva a `@JvmStatic` annotációval is. Erre azért van szükség, mert alapvetően, amikor a companion object-ek Jvm bájtkódra fordulnak, akkor egy külön statikus osztály jön számukra létre. Ezzel az annotációval lehet megadni, hogy ne jöjjön létre külön statikus osztály, ehelyett a bennfoglaló osztály (jelen esetben Category) statikus függvényei legyenek. Erre a speciális viselkedésre pedig a Room működése miatt van szükség, ugyanis tudnia kell, hol keresse egy-egy típusra a konvertereket.
+
+> Kotlinban van lehetőség úgynevezett data class létrehozására. Ezt talán legkönnyebben a Java-s POJO (Plain-Old-Java-Object) osztályoknak lehet megfeleltetni. A céljuk, hogy publikus property-kben összefüggő adatokat tároljanak, semmi több! Ezen kívül automatikusan létrejönnek bizonyos segédfüggvények is, például egy megfelelő equals, toString és copy implementáció.
 
 #### Egy DAO osztály létrehozása
 
@@ -148,10 +175,22 @@ A `data` package-ben hozzunk létre egy új Kotlin osztályt, aminek a neve legy
 @TypeConverters(value = [ShoppingItem.Category::class])
 abstract class ShoppingListDatabase : RoomDatabase() {
     abstract fun shoppingItemDao(): ShoppingItemDao
+
+    companion object {
+        fun getDatabase(applicationContext: Context): ShoppingListDatabase {
+            return Room.databaseBuilder(
+                applicationContext,
+                ShoppingListDatabase::class.java,
+                "shopping-list"
+            ).build();
+        }
+    }
 }
 ```
 
-A `@Database` *annotációval* lehet jelezni a kódgenerátornak, hogy egy osztály egy adatbázist fog reprezentálni. Az ilyen osztálynak *absztraktnak* kell lennie, valamint a `RoomDatabase`-ből kell származnia. Az *annotáció* `entities` paraméterének egy listát kell átadni, ami az adatbázis tábláknak megfelelő `@Entity`-vel jelzett osztályokat tartalmazza. A `version` paraméter értéke a korábban is látott lokális adatbázis verzió. A `@TypeConverters` *annotációval* lehet megadni a `Room`-nak olyan osztályokat, amik `@TypeConverter`-rel ellátott függvényeket tartalmaznak, ezzel támogatva a típuskonverziót adatbázis és objektum modell között. A `ShoppingListDatabase` osztály felelős a megfelelő DAO osztályok elérhetőségéért is.
+A `@Database` *annotációval* lehet jelezni a kódgenerátornak, hogy egy osztály egy adatbázist fog reprezentálni. Az ilyen osztálynak *absztraktnak* kell lennie, valamint a `RoomDatabase`-ből kell származnia. Az *annotáció* `entities` paraméterének egy listát kell átadni, ami az adatbázis tábláknak megfelelő `@Entity`-vel jelzett osztályokat tartalmazza. A `version` paraméter értéke a lokális adatbázis verzió. A `@TypeConverters` *annotációval* lehet megadni a `Room`-nak olyan osztályokat, amik `@TypeConverter`-rel ellátott függvényeket tartalmaznak, ezzel támogatva a típuskonverziót adatbázis és objektum modell között. A `ShoppingListDatabase` osztály felelős a megfelelő DAO osztályok elérhetőségéért is.
+
+Ezen kívül van még egy statikus *getDatabase* függvény, ami azt írja le, hogyan kell létrehozni az adatbázist (melyik osztályból, milyen néven). Ez a függvény az alkalmazás kontextusát várja paraméterül.
 
 ### Lista megjelenítése`RecyclerView`-val (2 pont)
 
