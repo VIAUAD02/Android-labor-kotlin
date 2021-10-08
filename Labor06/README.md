@@ -495,89 +495,8 @@ Ezen a ponton az alkalmazásunk már meg tudja jeleníteni az adatbázisban tár
 ### Dialógus megvalósítása új elem hozzáadásához (1 pont)
 A dialógus megjelenítéséhez `DialogFragment`-et fogunk használni.
 
-A `hu.bme.aut.shoppinglist` package-ben hozzunk létre egy új package-et `fragments` néven. A `fragments` package-ben hozzunk létre egy új Kotlin osztályt, aminek a neve legyen  `NewShoppingItemDialogFragment`:
+Hozzuk létre a dialógushoz tartozó *layoutot* `(dialog_new_shopping_item)`, majd másoljuk be a dialógushoz tartozó layoutot:
 
-```kotlin
-class NewShoppingItemDialogFragment : DialogFragment() {
-    interface NewShoppingItemDialogListener {
-        fun onShoppingItemCreated(newItem: ShoppingItem)
-    }
-
-    private lateinit var listener: NewShoppingItemDialogListener
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        listener = context as? NewShoppingItemDialogListener
-            ?: throw RuntimeException("Activity must implement the NewShoppingItemDialogListener interface!")
-    }
-
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return AlertDialog.Builder(requireActivity()).create()
-    }
-
-    companion object {
-        const val TAG = "NewShoppingItemDialogFragment"
-    }
-}
-```
-
-> A `DialogFragment`-et az `androidx.fragment.app` csomagból, az `AlertDialog`-ot pedig az `androidx.appcompat.app` csomagból importáljuk!
-
-Az osztályban definiáltunk egy `NewShoppingItemDialogListener` nevű *callback interface*-t, amelyen keresztül a dialógust megjelenítő `Activity` értesülhet az új elem létrehozásáról.
-
-
-A megjelenő dialógust az `onCreateDialog()` függvényben állítjuk össze. Ehhez az `AlertDialog.Builder` osztályt használjuk fel:
-```kotlin
-override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-	return AlertDialog.Builder(requireContext())
-		.setTitle(R.string.new_shopping_item)
-		.setView(getContentView())
-		.setPositiveButton(R.string.ok) { dialogInterface, i ->
-			// TODO implement item creation
-		}
-		.setNegativeButton(R.string.cancel, null)
-		.create()
-}
-```
-Az *Alt+Enter* billentyű kombinációval vegyük fel a hiányzó szöveges erőforrásokat:
-
-| Azonosító                  | Érték             |
-| -------------------------- | ----------------- |
-| R.string.new_shopping_item | New shopping item |
-| R.string.ok                | OK                |
-| R.string.cancel            | Cancel            |
-
-Implementáljuk a dialógus tartalmát létrehozó `getContentView()` függvényt:
-```kotlin
-private fun getContentView(): View {
-	val contentView =
-		LayoutInflater.from(context).inflate(R.layout.dialog_new_shopping_item, null)
-	nameEditText = contentView.findViewById(R.id.ShoppingItemNameEditText)
-	descriptionEditText = contentView.findViewById(R.id.ShoppingItemDescriptionEditText)
-	estimatedPriceEditText = contentView.findViewById(R.id.ShoppingItemEstimatedPriceEditText)
-	categorySpinner = contentView.findViewById(R.id.ShoppingItemCategorySpinner)
-	categorySpinner.setAdapter(
-		ArrayAdapter(
-			requireContext(),
-			android.R.layout.simple_spinner_dropdown_item,
-			resources.getStringArray(R.array.category_items)
-		)
-	)
-	alreadyPurchasedCheckBox = contentView.findViewById(R.id.ShoppingItemIsPurchasedCheckBox)
-	return contentView
-}
-```
-Vegyük fel a hiányzó tagváltozókat:
-```kotlin
-private lateinit var nameEditText: EditText
-private lateinit var descriptionEditText: EditText
-private lateinit var estimatedPriceEditText: EditText
-private lateinit var categorySpinner: Spinner
-private lateinit var alreadyPurchasedCheckBox: CheckBox
-```
-Hozzuk létre a dialógushoz tartozó *layoutot*. Ehhez kattintsunk a `getContentView()` függvény első sorában található `R.layout.dialog_new_shopping_item`-re, majd *Alt + Enter*-t nyomva válasszuk az első lehetőséget: *Create layout resource file …*, majd kattintsunk az *OK*-ra. 
-
-Az így létrejött `dialog_new_shopping_item.xml` fájlba másoljuk be a dialógushoz tartozó *layoutot*:
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -594,7 +513,7 @@ Az így létrejött `dialog_new_shopping_item.xml` fájlba másoljuk be a dialó
         android:text="@string/name"/>
 
     <EditText
-        android:id="@+id/ShoppingItemNameEditText"
+        android:id="@+id/etName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
@@ -605,7 +524,7 @@ Az így létrejött `dialog_new_shopping_item.xml` fájlba másoljuk be a dialó
         android:text="@string/description"/>
 
     <EditText
-        android:id="@+id/ShoppingItemDescriptionEditText"
+        android:id="@+id/etDescription"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
@@ -616,7 +535,7 @@ Az így létrejött `dialog_new_shopping_item.xml` fájlba másoljuk be a dialó
         android:text="@string/category"/>
 
     <Spinner
-        android:id="@+id/ShoppingItemCategorySpinner"
+        android:id="@+id/spCategory"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
@@ -627,45 +546,91 @@ Az így létrejött `dialog_new_shopping_item.xml` fájlba másoljuk be a dialó
         android:text="@string/estimated_price"/>
 
     <EditText
-        android:id="@+id/ShoppingItemEstimatedPriceEditText"
+        android:id="@+id/etEstimatedPrice"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="numberDecimal"/>
 
     <CheckBox
-        android:id="@+id/ShoppingItemIsPurchasedCheckBox"
+        android:id="@+id/cbAlreadyPurchased"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/already_purchased"/>
 
 </LinearLayout>
 ```
-Adja hozzá a `strings.xml`-hez a hiányzó szöveges erőforrásokat:
+Vegyük fel a hiányzó szöveges erőforrásokat.
 
->  Az egyszerűség kedvéért itt a teljes `strings.xml` tartalma látható.
+A `hu.bme.aut.shoppinglist` package-ben hozzunk létre egy új package-et `fragments` néven. A `fragments` package-ben hozzunk létre egy új Kotlin osztályt, aminek a neve legyen  `NewShoppingItemDialogFragment`:
 
+```kotlin
+class NewShoppingItemDialogFragment : DialogFragment() {
+    interface NewShoppingItemDialogListener {
+        fun onShoppingItemCreated(newItem: ShoppingItem)
+    }
+
+    private lateinit var listener: NewShoppingItemDialogListener
+
+    private lateinit var binding: DialogNewShoppingItemBinding
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        listener = context as? NewShoppingItemDialogListener
+            ?: throw RuntimeException("Activity must implement the NewShoppingItemDialogListener interface!")
+    }
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        // TODO implementation
+    }
+
+    companion object {
+        const val TAG = "NewShoppingItemDialogFragment"
+    }
+}
+```
+
+> A `DialogFragment`-et az `androidx.fragment.app` csomagból, az `AlertDialog`-ot pedig az `androidx.appcompat.app` csomagból importáljuk!
+
+Az osztályban definiáltunk egy `NewShoppingItemDialogListener` nevű *callback interface*-t, amelyen keresztül a dialógust megjelenítő `Activity` értesülhet az új elem létrehozásáról.
+
+A megjelenő dialógust az `onCreateDialog()` függvényben állítjuk össze. Ehhez az `AlertDialog.Builder` osztályt használjuk fel:
+```kotlin
+override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+    binding = DialogNewShoppingItemBinding.inflate(LayoutInflater.from(context))
+    binding.spCategory.adapter = ArrayAdapter(
+        context!!,
+        android.R.layout.simple_spinner_dropdown_item,
+        resources.getStringArray(R.array.category_items)
+    )
+
+	return AlertDialog.Builder(requireContext())
+		.setTitle(R.string.new_shopping_item)
+		.setView(binding.root)
+		.setPositiveButton(R.string.ok) { dialogInterface, i ->
+			// TODO implement item creation
+		}
+		.setNegativeButton(R.string.cancel, null)
+		.create()
+}
+```
+Az *Alt+Enter* billentyű kombinációval vegyük fel a hiányzó szöveges erőforrásokat:
+
+| Azonosító                  | Érték             |
+| -------------------------- | ----------------- |
+| R.string.new_shopping_item | New shopping item |
+| R.string.ok                | OK                |
+| R.string.cancel            | Cancel            |
+
+Ezen kívül adjunk hozzá a `strings.xml`-hez egy `string-array`-t is, ami tartalmazza a Spinnerben megjelenő szövegeket:
 ```xml
 <resources>
-    <string name="app_name">ShoppingList</string>
-    
-    <string name="action_settings">Settings</string>
-    
-    <string name="bought">Bought</string>
-    
-    <string name="new_shopping_item">New shopping item</string>
-    <string name="ok">OK</string>
-    <string name="cancel">Cancel</string>
-    
-    <string name="name">Name</string>
-    <string name="description">Description</string>
-    <string name="category">Category</string>
-    <string name="estimated_price">Estimated price</string>
-    <string name="already_purchased">Already purchased</string>
+    ...
     <string-array name="category_items">
         <item>Food</item>
         <item>Electronic</item>
         <item>Book</item>
     </string-array>
+    ...
 </resources>
 ```
 Az új elemet az *OK* gomb `ClickListener`-jében fogjuk létrehozni, amennyiben a bevitt adatok érvényesek. Ez esetben az érvényesség a név mező kitöltöttségét jelenti.
@@ -677,29 +642,26 @@ Implementáljuk a dialógus pozitív gombjának eseménykezelőjét a `NewShoppi
 	if (isValid()) {
 	    listener.onShoppingItemCreated(getShoppingItem())
 	}
-    }
+}
 ```
 
 Implementáljuk a hiányzó függvényeket:
 
-
 ```kotlin
-private fun isValid() = nameEditText.text.isNotEmpty()
+private fun isValid() = binding.etName.text.isNotEmpty()
 
 private fun getShoppingItem() = ShoppingItem(
-	id = null,
-	name = nameEditText.text.toString(),
-	description = descriptionEditText.text.toString(),
-	estimatedPrice = try {
-		estimatedPriceEditText.text.toString().toInt()
-	} catch (e: java.lang.NumberFormatException) {
-		0
-	},
-	category = ShoppingItem.Category.getByOrdinal(categorySpinner.selectedItemPosition)
-		?: ShoppingItem.Category.BOOK,
-	isBought = alreadyPurchasedCheckBox.isChecked
+	name = binding.etName.text.toString(),
+        description = binding.etDescription.text.toString(),
+        estimatedPrice = binding.etEstimatedPrice.text.toString().toIntOrNull() ?: 0,
+        category = ShoppingItemCategory.getByOrdinal(binding.spCategory.selectedItemPosition)
+            ?: ShoppingItemCategory.BOOK,
+        isBought = binding.cbAlreadyPurchased.isChecked
 )
 ```
+>A fenti kódrészletben két dolgot érdemes megfigyelni. Egyrészt, a konstruktor paramétereit (és Kotlinban általánosan bármely függvény paramétereit) név szerint is át lehet adni, így nem szükséges megjegyezni a paraméterek sorrendjét, ha esetleg sok paraméterünk lenne. Amennyiben a függvényparamétereknek még alapértelmezett értéket is adunk, úgy még kényelbesebbé válhat ez a funkció, hiszen csak az "érdekes" paraméterek kapnak értéket. Ez a módszer esetleg a Python nyelvből lehet ismerős.
+
+>Egy másik érdekesség a `?:`, avagy az [Elvis operátor](https://kotlinlang.org/docs/null-safety.html#elvis-operator). Ez azt csinálja, hogy amennyiben a bal oldali kifejezés nem null-ra értékelődik ki, akkor értékül a bal oldali kifejezést adja, ha pedig null-ra értékelődik ki, akkor a jobb oldali kifejezést. Így egyszerű null értéktől függő értékadást tömören le lehet írni.
 
 A `MainActivity` `onCreate()` függvényében frissítsük a `FloatingActionButton` `OnClickListener`-jét, hogy az a fentebb megvalósított dialógust dobja fel:
 ```kotlin
