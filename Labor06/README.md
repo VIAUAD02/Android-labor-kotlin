@@ -217,15 +217,13 @@ class ShoppingAdapter(private val listener: ShoppingItemClickListener) :
         // TODO implementation
     }
 
-    override fun getItemCount(): Int {
-        return items.size
-    }
+    override fun getItemCount(): Int = items.size
 
     interface ShoppingItemClickListener {
         fun onItemChanged(item: ShoppingItem)
     }
 
-    inner class ShoppingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
+    inner class ShoppingViewHolder(val binding: ItemShoppingListBinding) : RecyclerView.ViewHolder(binding.root){
         // TODO implementation
     }
 }
@@ -251,14 +249,14 @@ Az `R.layout.item_shopping_list` azonosítóra hibát jelez a fordító, hiszen 
     android:paddingTop="8dp">
 
     <CheckBox
-        android:id="@+id/ShoppingItemIsBoughtCheckBox"
+        android:id="@+id/cbIsBought"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:text="@string/bought" />
 
     <ImageView
-        android:id="@+id/ShoppingItemIconImageView"
+        android:id="@+id/ivIcon"
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:layout_marginLeft="8dp"
@@ -273,32 +271,32 @@ Az `R.layout.item_shopping_list` azonosítóra hibát jelez a fordító, hiszen 
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/ShoppingItemNameTextView"
+            android:id="@+id/tvName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:text="Apple" />
 
         <TextView
-            android:id="@+id/ShoppingItemDescriptionTextView"
+            android:id="@+id/tvDescription"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:text="My favorite fruit" />
 
         <TextView
-            android:id="@+id/ShoppingItemCategoryTextView"
+            android:id="@+id/tvCategory"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:text="Food" />
 
         <TextView
-            android:id="@+id/ShoppingItemPriceTextView"
+            android:id="@+id/tvPrice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:text="20 Ft" />
     </LinearLayout>
 
     <ImageButton
-        android:id="@+id/ShoppingItemRemoveButton"
+        android:id="@+id/ibRemove"
         style="@style/Widget.AppCompat.Button.Borderless"
         android:layout_width="50dp"
         android:layout_height="50dp"
@@ -308,69 +306,39 @@ Az `R.layout.item_shopping_list` azonosítóra hibát jelez a fordító, hiszen 
 
 </LinearLayout>
 ```
-Hozzuk létre a `@string/bought` erőforrást! Kattintsunk rá az erőforrás hivatkozásra, majd *Alt + Enter* lenyomása után válasszuk a *„Create string value resource ’bought’”* lehetőséget! A felugró ablakban az erőforrás értékének adjuk a "Bought" értéket (idézőjelek nélkül)!
+Hozzuk létre a `@string/bought` erőforrást! Kattintsunk rá az erőforrás hivatkozásra, majd *Alt + Enter* lenyomása után válasszuk a *„Create string value resource ’bought’”* lehetőséget! A felugró ablakban az erőforrás értékének adjuk a `Bought` értéket!
 
-Térjünk vissza az `ShoppingAdapter`-hez, és adjuk hozzá a `ShoppingViewHolder`-hez a megfelelő mezőket. Ezeken a mezőkön keresztül fogjuk tudni elérni az egyes lista elemekhez tartozó nézeteket.
-
-```kotlin
-inner class ShoppingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
-	val iconImageView: ImageView
-	val nameTextView: TextView
-	val descriptionTextView: TextView
-	val categoryTextView: TextView
-	val priceTextView: TextView
-	val isBoughtCheckBox: CheckBox
-	val removeButton: ImageButton
-	
-	var item: ShoppingItem? = null
-
-	init {
-		iconImageView = itemView.findViewById(R.id.ShoppingItemIconImageView)
-		nameTextView = itemView.findViewById(R.id.ShoppingItemNameTextView)
-		descriptionTextView = itemView.findViewById(R.id.ShoppingItemDescriptionTextView)
-		categoryTextView = itemView.findViewById(R.id.ShoppingItemCategoryTextView)
-		priceTextView = itemView.findViewById(R.id.ShoppingItemPriceTextView)
-		isBoughtCheckBox = itemView.findViewById(R.id.ShoppingItemIsBoughtCheckBox)
-		removeButton = itemView.findViewById(R.id.ShoppingItemRemoveButton)
-		isBoughtCheckBox.setOnCheckedChangeListener(CompoundButton.OnCheckedChangeListener { buttonView, isChecked ->
-			item?.let { 
-				val newItem = it.copy(
-					isBought = isChecked
-				)
-				item = newItem
-				listener.onItemChanged(newItem)
-			}
-		})
-	}
-}
-```
-Figyeljük meg, hogy az `isBoughtCheckBox`-ra egyszer, a `ViewHolder` létrehozásakor állítunk `OnCheckedChangeListener`-t, és csak a callbackben visszaadott `item` fog változni!
-
-Valósítsuk meg a `ShoppingAdapter` osztály `onBindViewHolder()`függvényét, azaz kössük hozzá a megfelelő modell elem tulajdonságait lista elem nézeteihez:
+Térjünk vissza az `ShoppingAdapter`-hez, és írjuk meg `onBindViewHolder`-ben az adatok megjelenítésének logikáját. Érdemes megfigyelni a `getImageResource` függvényt, ami az enum-hoz társítja a megfelelő képi erőforrást.
 
 ```kotlin
 override fun onBindViewHolder(holder: ShoppingViewHolder, position: Int) {
-	val item = items[position]
-	holder.nameTextView.text = item.name
-	holder.descriptionTextView.text = item.description
-	holder.categoryTextView.text = item.category.name
-	holder.priceTextView.text = item.estimatedPrice.toString() + " Ft"
-	holder.iconImageView.setImageResource(getImageResource(item.category))
-	holder.isBoughtCheckBox.isChecked = item.isBought
+    val shoppingItem = items[position]
 
-	holder.item = item
+    holder.binding.ivIcon.setImageResource(getImageResource(shoppingItem.category))
+    holder.binding.cbIsBought.isChecked = shoppingItem.isBought
+    holder.binding.tvName.text = shoppingItem.name
+    holder.binding.tvDescription.text = shoppingItem.description
+    holder.binding.tvCategory.text = shoppingItem.category.name
+    holder.binding.tvPrice.text = "${shoppingItem.estimatedPrice} Ft"
+
+    holder.binding.cbIsBought.setOnCheckedChangeListener { buttonView, isChecked ->
+        shoppingItem.isBought = isChecked
+        listener.onItemChanged(shoppingItem)
+    }
+
+}
+
+@DrawableRes()
+private fun getImageResource(category: ShoppingItemCategory): Int {
+    return when (category) {
+        ShoppingItemCategory.FOOD -> R.drawable.groceries
+        ShoppingItemCategory.ELECTRONIC -> R.drawable.lightning
+        ShoppingItemCategory.BOOK -> R.drawable.open_book
+    }
 }
 ```
-Adjuk hozzá a `ShoppingAdapter` osztályhoz az eddig hiányzó `getImageResource()` függvényt:
+Látható, hogy a felületet a *holder* nevű *ViewHolder* objektum *binding* attribútumán keresztül érjük el, innen tudjuk használni a *resource id*-kat.
 
-```kotlin
-@DrawableRes
-private fun getImageResource(category: ShoppingItem.Category) = when (category) {
-	ShoppingItem.Category.BOOK -> R.drawable.open_book
-	ShoppingItem.Category.ELECTRONIC -> R.drawable.lightning
-	ShoppingItem.Category.FOOD -> R.drawable.groceries
-}
-```
 Biztosítsuk egy elem hozzáadásának, valamint a teljes lista frissítésének lehetőségét az alábbi függvényekkel:
 
 ```kotlin
@@ -385,54 +353,94 @@ fun update(shoppingItems: List<ShoppingItem>) {
 	notifyDataSetChanged()
 }
 ```
+>A RecyclerView megírásánál figyeltek arra, hogy hatékony legyen, ezért az adathalmaz változásakor csak azokat a nézeteket frissíti, amit feltétlen szükséges. Azonban szintén hatékonyság miatt, nem az adapter fogja kiszámolni a változást, hanem ezt a programozónak kell kézzel jeleznie. Erre szolgál a `notify***` függvénycsalád, aminek két tagja fent látható. Az alsó hatására a teljes adathalmaz lecserélődik, és újrarajzolódik minden. Az első hatására viszont a már létező elemek nem módosulnak, csak egy újonnan beszúrt elem lesz kirajzolva.
 
 #### A `RecyclerView` és az adatok megjelenítése
 
-Szeretnék, hogy a bevásárlólista alkalmazás egyetlen `Activity`-jét teljesen elfoglalja. Ennek az eléréséhez cseréljük le a `content_main.xml` tartalmát úgy, hogy a nézet egyetlen `RecyclerViev`-ból álljon:
+Kezdjük azzal, hogy kiegészítjük a theme.xml fájl tartalmát az alábbiakkal:
+
+```xml
+<style name="Theme.ShoppingList" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <item name="windowActionBar">false</item>
+    <item name="windowNoTitle">true</item>
+    ...
+
+</style>
+```
+
+Szeretnék, hogy a bevásárlólista alkalmazás egyetlen `Activity`-jét teljesen elfoglalja. Ennek az eléréséhez cseréljük le az `activity_main.xml` tartalmát az alábbiakra:
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/MainRecyclerView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:listitem="@layout/item_shopping_list" />
+    tools:context=".MainActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvMain"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+        tools:listitem="@layout/item_shopping_list" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="24dp"
+        app:srcCompat="@drawable/ic_add_white_36dp" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
 ```
+Megfigyelhető, hogy a témában kikapcsoltuk az ActionBar megjelenését, helyette az xml fájlban szerepel egy [Toolbar](https://developer.android.com/reference/android/widget/Toolbar) típusú elem, egy AppBarLayout-ba csomagolva. Mostanában tanácsos nem a beépített ActionBar-t használni, hanem helyette egy Toolbar-t lehelyezni, mert ez több, hasznos funkciót is támogat, például integrálódni tud egy NavigationDrawer-rel, vagy az újabb navigációs komponenssel (amit ebből a tárgyból nem veszünk).
+
 A `tools:listitem` paraméter segítségével az Android Studio layout megjelenítő felületén megjelenik a paraméterben átadott listaelem.
 
 Adjuk hozzá az alábbi változókat a `MainActivity`-hez és cseréljük le a projekt létrehozásakor generált `onCreate()` függvényt:
-```kotlin
-    private lateinit var recyclerView: RecyclerView 
-    private lateinit var adapter: ShoppingAdapter
-    private lateinit var database: ShoppingListDatabase
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        setSupportActionBar(toolbar)
-        fab.setOnClickListener{
-            // TODO implement shopping item creation
-        }
-        database = Room.databaseBuilder(
-            applicationContext,
-            ShoppingListDatabase::class.java,
-            "shopping-list"
-        ).build()
+```kotlin
+private lateinit var binding: ActivityMainBinding
+
+private lateinit var database: ShoppingListDatabase
+private lateinit var adapter: ShoppingAdapter
+
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    binding = ActivityMainBinding.inflate(layoutInflater)
+    setContentView(binding.root)
+    setSupportActionBar(binding.toolbar)
+
+    database = ShoppingListDatabase.getDatabase(applicationContext)
+
+    binding.fab.setOnClickListener {
+        //TODO
     }
+}
 ```
-A `lateinit var` kulcsszóval el tudjuk kerülni azt, hogy nullable típussal deklaráljuk ezeket a változókat, így a fordító nem fog hibát dobni forduláskor. Fontos, hogy az ilyen változók inicializálás előtti használata tilos, az futás idejű hibát fog eredményezni.
 
 A `MainActivity`-hez adjuk hozzá a  `RecyclerView`-t inicializáló kódrészletet: 
 ```kotlin
 private fun initRecyclerView() {
-	recyclerView = MainRecyclerView
-	adapter = ShoppingAdapter(this)
-	loadItemsInBackground()
-	recyclerView.layoutManager = LinearLayoutManager(this)
-	recyclerView.adapter = adapter
+        adapter = ShoppingAdapter(this)
+        binding.rvMain.layoutManager = LinearLayoutManager(this)
+        binding.rvMain.adapter = adapter
+        loadItemsInBackground()
 }
 
 private fun loadItemsInBackground() {
@@ -446,7 +454,7 @@ private fun loadItemsInBackground() {
 ```
 Mivel az adatbázis kérés nem történhet az alkalmazás főszálán, a Kotlin által biztosított `thread()` segédfüggvénnyel létrehozunk egy új szálat, a kiolvasott listát pedig az Activity által biztosított `runOnUiThread` függvény segítségével a főszálon adjuk át az adapternek.
 Ez nem tökéletes megoldás, mivel ha elhagynánk az activity-t a kiolvasás során, a thread életben maradna, ami akár memóriaszivárgást is okozhat.
-Egy jobb megoldást biztosít a Kotlin `Coroutine` támogatása, ennek bemutatására azonban sajnos a labor keretei között nincsen idő.
+Egy jobb megoldást biztosít a [Kotlin Coroutine](https://kotlinlang.org/docs/coroutines-guide.html) támogatása, ennek bemutatására azonban sajnos a labor keretei között nincsen idő.
 
 A `ShoppingAdapter` létrehozásakor a `MainActivity`-t adjuk át az adapter konstruktor paramétereként, de a `MainActivity` még nem implementálja a szükséges interfészt. Pótoljuk a hiányosságot:
 
@@ -469,17 +477,17 @@ Hívjuk meg az `initRecyclerView()` függvényt az `onCreate()` függvény utols
 ```kotlin
 override fun onCreate(savedInstanceState: Bundle?) {
 	super.onCreate(savedInstanceState)
-	setContentView(R.layout.activity_main)
-	setSupportActionBar(toolbar)
-	fab.setOnClickListener{
-		// TODO implement shopping item creation
-	}
-	database = Room.databaseBuilder(
-		applicationContext,
-		ShoppingListDatabase::class.java,
-		"shopping-list"
-	).build()
-	initRecyclerView()
+	binding = ActivityMainBinding.inflate(layoutInflater)
+    setContentView(binding.root)
+    setSupportActionBar(binding.toolbar)
+
+    database = ShoppingListDatabase.getDatabase(applicationContext)
+
+    binding.fab.setOnClickListener {
+        //TODO
+    }
+
+    initRecyclerView()
 }
 ```
 Ezen a ponton az alkalmazásunk már meg tudja jeleníteni az adatbázisban tárolt vásárolni valókat, azonban sajnos még egy elemünk sincs, mivel lehetőségünk sem volt felvenni őket. A következő lépés az új elem létrehozását biztosító funkció implementálása.
