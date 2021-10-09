@@ -678,12 +678,10 @@ class MainActivity : AppCompatActivity(), ShoppingAdapter.ShoppingItemClickListe
 
 	override fun onShoppingItemCreated(newItem: ShoppingItem) {
 		thread {
-			val newId = database.shoppingItemDao().insert(newItem)
-			val newShoppingItem = newItem.copy(
-				id = newId
-			)
+			database.shoppingItemDao().insert(newItem)
+
 			runOnUiThread { 
-				adapter.addItem(newShoppingItem)
+				adapter.addItem(newItem)
 			}
 		}
 	}
@@ -694,6 +692,9 @@ Próbáljuk ki az alkalmazást!
 
 ### Önálló feladat: törlés megvalósítása (1 pont)
 Elem törlése egyesével, az elemeken található szemetes ikonra kattintás hatására:
+- Gomb eseménykezelőjének megvalósítása
+- Interfész kibővítése
+- Interfész függvény megvalósítása
 - Törlés az adapterből
 - Törlés az adatbázisból
 - `RecyclerView` frissítése
