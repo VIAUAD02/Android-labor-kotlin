@@ -101,12 +101,12 @@ A `hu.bme.aut.shoppinglist` package-ben hozzunk létre egy új package-et `data`
 ```kotlin
 @Entity(tableName = "shoppingitem")
 data class ShoppingItem(
-    @ColumnInfo(name = "id") @PrimaryKey(autoGenerate = true) val id: Long?,
-    @ColumnInfo(name = "name") val name: String,
-    @ColumnInfo(name = "description") val description: String,
-    @ColumnInfo(name = "category") val category: Category,
-    @ColumnInfo(name = "estimated_price") val estimatedPrice: Int,
-    @ColumnInfo(name = "is_bought") val isBought: Boolean
+    @ColumnInfo(name = "id") @PrimaryKey(autoGenerate = true) var id: Long? = null,
+    @ColumnInfo(name = "name") var name: String,
+    @ColumnInfo(name = "description") var description: String,
+    @ColumnInfo(name = "category") var category: Category,
+    @ColumnInfo(name = "estimated_price") var estimatedPrice: Int,
+    @ColumnInfo(name = "is_bought") var isBought: Boolean
 ) {
     enum class Category {
         FOOD, ELECTRONIC, BOOK;
@@ -206,12 +206,9 @@ class ShoppingAdapter(private val listener: ShoppingItemClickListener) :
     RecyclerView.Adapter<ShoppingAdapter.ShoppingViewHolder>() {
 
     private val items = mutableListOf<ShoppingItem>()
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ShoppingViewHolder {
-        val itemView: View = LayoutInflater
-            .from(parent.context)
-            .inflate(R.layout.item_shopping_list, parent, false)
-        return ShoppingViewHolder(itemView)
-    }
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ShoppingViewHolder(
+        ItemShoppingListBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+    )
 
     override fun onBindViewHolder(holder: ShoppingViewHolder, position: Int) {
         // TODO implementation
@@ -223,10 +220,7 @@ class ShoppingAdapter(private val listener: ShoppingItemClickListener) :
         fun onItemChanged(item: ShoppingItem)
     }
 
-    inner class ShoppingViewHolder(val binding: ItemShoppingListBinding) : RecyclerView.ViewHolder(binding.root){
-        // TODO implementation
-    }
-}
+    inner class ShoppingViewHolder(val binding: ItemShoppingListBinding) : RecyclerView.ViewHolder(binding.root)
 ```
 
  A listát `RecyclerView` segítségével szeretnénk megjeleníteni, ezért az adapter a `RecyclerView.Adapter` osztályból származik. Az adapter a modell elemeket egy listában tárolja. A rendszer a `RecyclerView`-val való hatékony lista megjelenítéshez a [*ViewHolder* tervezési mintát](https://developer.android.com/training/improving-layouts/smooth-scrolling#java) valósítja meg, ezért szükség van egy `ViewHolder` osztály megadására is. `ViewHolder`-eken keresztül érhetjük majd el a lista elemekhez tartozó `View`-kat. Mivel a `ViewHolder` osztály példányai az Adapterhez lesznek csatolva (azért, hogy elérjék a belső változóit), `inner class` osztályként kell definiálni.
@@ -331,9 +325,9 @@ override fun onBindViewHolder(holder: ShoppingViewHolder, position: Int) {
 @DrawableRes()
 private fun getImageResource(category: ShoppingItemCategory): Int {
     return when (category) {
-        ShoppingItemCategory.FOOD -> R.drawable.groceries
-        ShoppingItemCategory.ELECTRONIC -> R.drawable.lightning
-        ShoppingItemCategory.BOOK -> R.drawable.open_book
+        ShoppingItem.Category.FOOD -> R.drawable.groceries
+        ShoppingItem.Category.ELECTRONIC -> R.drawable.lightning
+        ShoppingItem.Category.BOOK -> R.drawable.open_book
     }
 }
 ```
@@ -372,7 +366,8 @@ Szeretnék, hogy a bevásárlólista alkalmazás egyetlen `Activity`-jét teljes
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -387,7 +382,7 @@ Szeretnék, hogy a bevásárlólista alkalmazás egyetlen `Activity`-jét teljes
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary" />
+            android:background="?attr/colorSecondary" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -495,7 +490,7 @@ Ezen a ponton az alkalmazásunk már meg tudja jeleníteni az adatbázisban tár
 ### Dialógus megvalósítása új elem hozzáadásához (1 pont)
 A dialógus megjelenítéséhez `DialogFragment`-et fogunk használni.
 
-Hozzuk létre a dialógushoz tartozó *layoutot* `(dialog_new_shopping_item)`, majd másoljuk be a dialógushoz tartozó layoutot:
+Hozzuk létre a dialógushoz tartozó *layoutot* `dialog_new_shopping_item.xml`, majd másoljuk be a dialógushoz tartozó layoutot:
 
 
 ```xml
@@ -559,7 +554,17 @@ Hozzuk létre a dialógushoz tartozó *layoutot* `(dialog_new_shopping_item)`, m
 
 </LinearLayout>
 ```
-Vegyük fel a hiányzó szöveges erőforrásokat.
+Vegyük fel a hiányzó szöveges erőforrásokat a `strings.xml`-ben:
+
+<resources>
+    ...
+    <string name="name">Name</string>
+    <string name="description">Description</string>
+    <string name="category">Category</string>
+    <string name="estimated_price">Estimated Price</string>
+    <string name="already_purchased">Already purchased</string>
+    ...
+</resources>
 
 A `hu.bme.aut.shoppinglist` package-ben hozzunk létre egy új package-et `fragments` néven. A `fragments` package-ben hozzunk létre egy új Kotlin osztályt, aminek a neve legyen  `NewShoppingItemDialogFragment`:
 
@@ -580,7 +585,21 @@ class NewShoppingItemDialogFragment : DialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        // TODO implementation
+        binding = DialogNewShoppingItemBinding.inflate(LayoutInflater.from(context))
+        binding.spCategory.adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_dropdown_item,
+            resources.getStringArray(R.array.category_items)
+        )
+
+        return AlertDialog.Builder(requireContext())
+            .setTitle(R.string.new_shopping_item)
+            .setView(binding.root)
+            .setPositiveButton(R.string.ok) { dialogInterface, i ->
+                // TODO implement item creation
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .create()
     }
 
     companion object {
@@ -593,38 +612,16 @@ class NewShoppingItemDialogFragment : DialogFragment() {
 
 Az osztályban definiáltunk egy `NewShoppingItemDialogListener` nevű *callback interface*-t, amelyen keresztül a dialógust megjelenítő `Activity` értesülhet az új elem létrehozásáról.
 
-A megjelenő dialógust az `onCreateDialog()` függvényben állítjuk össze. Ehhez az `AlertDialog.Builder` osztályt használjuk fel:
-```kotlin
-override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-    binding = DialogNewShoppingItemBinding.inflate(LayoutInflater.from(context))
-    binding.spCategory.adapter = ArrayAdapter(
-        context!!,
-        android.R.layout.simple_spinner_dropdown_item,
-        resources.getStringArray(R.array.category_items)
-    )
+A megjelenő dialógust az `onCreateDialog()` függvényben állítjuk össze. Ehhez az `AlertDialog.Builder` osztályt használjuk fel.
 
-	return AlertDialog.Builder(requireContext())
-		.setTitle(R.string.new_shopping_item)
-		.setView(binding.root)
-		.setPositiveButton(R.string.ok) { dialogInterface, i ->
-			// TODO implement item creation
-		}
-		.setNegativeButton(R.string.cancel, null)
-		.create()
-}
-```
-Az *Alt+Enter* billentyű kombinációval vegyük fel a hiányzó szöveges erőforrásokat:
-
-| Azonosító                  | Érték             |
-| -------------------------- | ----------------- |
-| R.string.new_shopping_item | New shopping item |
-| R.string.ok                | OK                |
-| R.string.cancel            | Cancel            |
-
-Ezen kívül adjunk hozzá a `strings.xml`-hez egy `string-array`-t is, ami tartalmazza a Spinnerben megjelenő szövegeket:
+Ezen kívül adjunk hozzá a `strings.xml`-hez a hiányzó szöveges erőforrásokat, valamint egy `string-array`-t is, ami tartalmazza a Spinnerben megjelenő szövegeket:
 ```xml
 <resources>
     ...
+    <string name="new_shopping_item">New Shopping Item</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+
     <string-array name="category_items">
         <item>Food</item>
         <item>Electronic</item>
@@ -652,11 +649,11 @@ private fun isValid() = binding.etName.text.isNotEmpty()
 
 private fun getShoppingItem() = ShoppingItem(
 	name = binding.etName.text.toString(),
-        description = binding.etDescription.text.toString(),
-        estimatedPrice = binding.etEstimatedPrice.text.toString().toIntOrNull() ?: 0,
-        category = ShoppingItemCategory.getByOrdinal(binding.spCategory.selectedItemPosition)
-            ?: ShoppingItemCategory.BOOK,
-        isBought = binding.cbAlreadyPurchased.isChecked
+    description = binding.etDescription.text.toString(),
+    estimatedPrice = binding.etEstimatedPrice.text.toString().toIntOrNull() ?: 0,
+    category = ShoppingItem.Category.getByOrdinal(binding.spCategory.selectedItemPosition)
+            ?: ShoppingItem.Category.BOOK,
+    isBought = binding.cbAlreadyPurchased.isChecked
 )
 ```
 >A fenti kódrészletben két dolgot érdemes megfigyelni. Egyrészt, a konstruktor paramétereit (és Kotlinban általánosan bármely függvény paramétereit) név szerint is át lehet adni, így nem szükséges megjegyezni a paraméterek sorrendjét, ha esetleg sok paraméterünk lenne. Amennyiben a függvényparamétereknek még alapértelmezett értéket is adunk, úgy még kényelbesebbé válhat ez a funkció, hiszen csak az "érdekes" paraméterek kapnak értéket. Ez a módszer esetleg a Python nyelvből lehet ismerős.
@@ -693,17 +690,6 @@ class MainActivity : AppCompatActivity(), ShoppingAdapter.ShoppingItemClickListe
 ```
 > Figyeljük meg, hogy ebben az esetben is `thread`-be csomagolva futtatunk adatbázis műveletet. A `Room` tiltja a UI szálon történő adatbázis műveletek futtatását. Emellett a *user experience (UX)* is romlik, ha az esetlegesen lassú műveletek megakasztják a UI szálat.
 
-Frissítsük az `activity_main.xml` layout fájlban a `FloatingActionButton` ikonját:
-
-```xml
-<com.google.android.material.floatingactionbutton.FloatingActionButton
-    android:id="@+id/fab"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="bottom|end"
-    android:layout_margin="@dimen/fab_margin"
-    android:src="@drawable/ic_add_white_36dp"/>
-```
 Próbáljuk ki az alkalmazást!
 
 ### Önálló feladat: törlés megvalósítása (1 pont)
