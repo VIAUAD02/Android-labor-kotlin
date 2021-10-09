@@ -229,7 +229,7 @@ A `RecyclerView.Adapter` három absztrakt függvényt definiál, amelyeket köte
 
 A `ShoppingAdapter`-ben definiáltunk egy `ShoppingItemClickListener` nevű interfészt is, aminek a segítségével jelezhetjük az alkalmazás többi része felé, hogy esemény történt egy lista elemen.
 
-Az `R.layout.item_shopping_list` azonosítóra hibát jelez a fordító, hiszen még nem hoztuk létre a hivatkozott layout erőforrást. Kattintsunk rá, majd nyomjuk meg az *Alt + Enter* billentyű kombinációt. Válasszuk az első lehetőséget: *„Create layout resource file item_shopping_list.xml”*. Cseréljük le az újonnan létrehozott fájl tartalmát az alábbira:
+Az ItemShoppingListBinding-ra hibát jelez a fordító, hiszen még nem hoztuk létre a hozzá tartozó layout erőforrást. Ezt tegyük is meg: Hozzuk létre `item_shopping_list.xml` néven és cseréljük le a fájl tartalmát az alábbira:
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
