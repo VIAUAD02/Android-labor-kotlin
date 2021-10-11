@@ -443,7 +443,7 @@ val remainingHolidays get() = HOLIDAY_MAX_VALUE - holidays
 
 A PieChart kirajzolásához az [MPAndroidChart](https://github.com/PhilJay/MPAndroidChart) library-t fogjuk használni.
 
-Projekt szintű build.gradle:
+settings.gradle:
 ```groovy
 allprojects {
     repositories {
