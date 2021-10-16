@@ -221,6 +221,7 @@ class ShoppingAdapter(private val listener: ShoppingItemClickListener) :
     }
 
     inner class ShoppingViewHolder(val binding: ItemShoppingListBinding) : RecyclerView.ViewHolder(binding.root)
+}
 ```
 
  A listát `RecyclerView` segítségével szeretnénk megjeleníteni, ezért az adapter a `RecyclerView.Adapter` osztályból származik. Az adapter a modell elemeket egy listában tárolja. A rendszer a `RecyclerView`-val való hatékony lista megjelenítéshez a [*ViewHolder* tervezési mintát](https://developer.android.com/training/improving-layouts/smooth-scrolling#java) valósítja meg, ezért szükség van egy `ViewHolder` osztály megadására is. `ViewHolder`-eken keresztül érhetjük majd el a lista elemekhez tartozó `View`-kat. Mivel a `ViewHolder` osztály példányai az Adapterhez lesznek csatolva (azért, hogy elérjék a belső változóit), `inner class` osztályként kell definiálni.
@@ -323,7 +324,7 @@ override fun onBindViewHolder(holder: ShoppingViewHolder, position: Int) {
 }
 
 @DrawableRes()
-private fun getImageResource(category: ShoppingItemCategory): Int {
+private fun getImageResource(category: ShoppingItem.Category): Int {
     return when (category) {
         ShoppingItem.Category.FOOD -> R.drawable.groceries
         ShoppingItem.Category.ELECTRONIC -> R.drawable.lightning
@@ -555,7 +556,7 @@ Hozzuk létre a dialógushoz tartozó *layoutot* `dialog_new_shopping_item.xml`,
 </LinearLayout>
 ```
 Vegyük fel a hiányzó szöveges erőforrásokat a `strings.xml`-ben:
-
+```xml
 <resources>
     ...
     <string name="name">Name</string>
@@ -563,8 +564,19 @@ Vegyük fel a hiányzó szöveges erőforrásokat a `strings.xml`-ben:
     <string name="category">Category</string>
     <string name="estimated_price">Estimated Price</string>
     <string name="already_purchased">Already purchased</string>
+    <string name="new_shopping_item">New Shopping Item</string>
+    <string name="button_ok">OK</string>
+    <string name="button_cancel">Cancel</string>
+
+    <string-array name="category_items">
+        <item>Food</item>
+        <item>Electronic</item>
+        <item>Book</item>
+    </string-array>
     ...
 </resources>
+```
+Látható, hogy felveszünk egy `string-array`-t is, ezeket a szövegeket a Spinnerben fogjuk megjeleníteni.
 
 A `hu.bme.aut.shoppinglist` package-ben hozzunk létre egy új package-et `fragments` néven. A `fragments` package-ben hozzunk létre egy új Kotlin osztályt, aminek a neve legyen  `NewShoppingItemDialogFragment`:
 
@@ -595,10 +607,10 @@ class NewShoppingItemDialogFragment : DialogFragment() {
         return AlertDialog.Builder(requireContext())
             .setTitle(R.string.new_shopping_item)
             .setView(binding.root)
-            .setPositiveButton(R.string.ok) { dialogInterface, i ->
+            .setPositiveButton(R.string.button_ok) { dialogInterface, i ->
                 // TODO implement item creation
             }
-            .setNegativeButton(R.string.cancel, null)
+            .setNegativeButton(R.string.button_cancel, null)
             .create()
     }
 
@@ -612,25 +624,7 @@ class NewShoppingItemDialogFragment : DialogFragment() {
 
 Az osztályban definiáltunk egy `NewShoppingItemDialogListener` nevű *callback interface*-t, amelyen keresztül a dialógust megjelenítő `Activity` értesülhet az új elem létrehozásáról.
 
-A megjelenő dialógust az `onCreateDialog()` függvényben állítjuk össze. Ehhez az `AlertDialog.Builder` osztályt használjuk fel.
-
-Ezen kívül adjunk hozzá a `strings.xml`-hez a hiányzó szöveges erőforrásokat, valamint egy `string-array`-t is, ami tartalmazza a Spinnerben megjelenő szövegeket:
-```xml
-<resources>
-    ...
-    <string name="new_shopping_item">New Shopping Item</string>
-    <string name="ok">OK</string>
-    <string name="cancel">Cancel</string>
-
-    <string-array name="category_items">
-        <item>Food</item>
-        <item>Electronic</item>
-        <item>Book</item>
-    </string-array>
-    ...
-</resources>
-```
-Az új elemet az *OK* gomb `ClickListener`-jében fogjuk létrehozni, amennyiben a bevitt adatok érvényesek. Ez esetben az érvényesség a név mező kitöltöttségét jelenti.
+A megjelenő dialógust az `onCreateDialog()` függvényben állítjuk össze. Ehhez az `AlertDialog.Builder` osztályt használjuk fel. Az új elemet az *OK* gomb `ClickListener`-jében fogjuk létrehozni, amennyiben a bevitt adatok érvényesek. Jelen esetben az érvényesség a név mező kitöltöttségét jelenti.
 
 Implementáljuk a dialógus pozitív gombjának eseménykezelőjét a `NewShoppingItemDialogFragment` osztály `onCreateDialog` függvényén belül:
 
