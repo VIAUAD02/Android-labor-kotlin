@@ -620,7 +620,7 @@ class NewShoppingItemDialogFragment : DialogFragment() {
 }
 ```
 
-> A `DialogFragment`-et az `androidx.fragment.app` csomagból, az `AlertDialog`-ot pedig az `androidx.appcompat.app` csomagból importáljuk!
+> A `DialogFragment`-et az `androidx.fragment.app` csomagból, az `AlertDialog`-ot pedig az `androidx.appcompat.app` csomagból importáljuk! Ha az auto-import beimportálja az android.R package-t, azt töröljük ki, a `simple_spinner_dropdown_item` package-ét pedig javítsuk ki, ha átíródna.
 
 Az osztályban definiáltunk egy `NewShoppingItemDialogListener` nevű *callback interface*-t, amelyen keresztül a dialógust megjelenítő `Activity` értesülhet az új elem létrehozásáról.
 
@@ -656,7 +656,7 @@ private fun getShoppingItem() = ShoppingItem(
 
 A `MainActivity` `onCreate()` függvényében frissítsük a `FloatingActionButton` `OnClickListener`-jét, hogy az a fentebb megvalósított dialógust dobja fel:
 ```kotlin
-fab.setOnClickListener{
+binding.fab.setOnClickListener{
 	NewShoppingItemDialogFragment().show(
 		supportFragmentManager,
 		NewShoppingItemDialogFragment.TAG
