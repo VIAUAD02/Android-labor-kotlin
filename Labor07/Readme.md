@@ -81,7 +81,7 @@ Ezután kattintsunk a jobb felső sarokban megjelenő **Sync now** gombra.
 
 >  A `Retrofit` a fejlesztő által leírt egyszerű, megfelelően annotált interfészek alapján kódgenerálással állít elő HTTP hivásokat lebonyolító implementációt. Kezeli az URL-ben inline módon adott paramétereket, az URL queryket, stb. Támogatja a legnépszerűbb szerializáló/deszerializáló megoldásokat is (pl.: [`Gson`](https://github.com/google/gson), [`Moshi`](https://github.com/square/moshi), [`Simple XML`](simple.sourceforge.net), stb.), amikkel Java/Kotlin objektumok, és JSON vagy XML formátumú adatok közötti kétirányú átalakítás valósítható meg. A laboron ezek közül a Gsont fogjuk használni a JSON-ban érkező időjárás adatok konvertálására.
 
-> A `Glide`  egy hatékny képbetöltést és -cache-elést megvalósító library Androidra. Egyszerű interfésze és hatékonysága miatt használjuk.
+> A `Glide`  egy hatékony képbetöltést és -cache-elést megvalósító library Androidra. Egyszerű interfésze és hatékonysága miatt használjuk.
 
 Az alkalmazásban szükségünk lesz internet elérésre. Vegyük fel az `AndroidManifest.xml` állományban az *Internet permission*-t az `application` tagen *kívülre*:
 
@@ -137,7 +137,7 @@ Valósítsuk meg az egy `RecyclerView`-ból álló, városok listáját megjelen
 
 A város nevére kattintva jelenik majd meg egy részletező nézet (*DetailsAcitivity*), ahol az időjárás információk letöltése fog történni. Új város felvételére egy *FloatingActionButton* fog szolgálni.
 
-Cseréljük le az  `activity_city.xml` tartalmát egy `RecyclerView`-ra és egy `Floating Action Button`-re:
+Cseréljük le az  `activity_city.xml` tartalmát egy `RecyclerView`-ra és egy `FloatingActionButton`-re:
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -954,8 +954,6 @@ private fun loadWeatherData() {
     })
 }
 ```
-
-A getImages által várt függvény paramétereket lambdák létrehozása helyett metódus referenciákkal adtuk át, amihez természetesen a showImages és showError függvényeknek a megfelelő fejléccel kell rendelkezniük.
 
 Implementáljuk a hiányzó `displayWeatherData(...)` függvényt, ami sikeres API hívás esetén megjeleníti az eredményt:
 
