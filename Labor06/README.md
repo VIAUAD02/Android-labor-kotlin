@@ -97,7 +97,7 @@ A  `Room` egy kényelmes adatbazáskezelést lehetővé tevő API-t nyújt a pla
 A `Room` alapvető komponenseinek, architektúrájának és használatának leírása megtalálható a megfelelő [developer.android.com](https://developer.android.com/training/data-storage/room/) oldalon.
 
 #### Egy modell osztály létrehozása
-A `hu.bme.aut.shoppinglist` package-ben hozzunk létre egy új package-et `data` néven. A `data` package-ben hozzunk létre egy új Kotlin osztályt, aminek a neve legyen  `ShoppingItem`:
+A `hu.bme.aut.android.shoppinglist` package-ben hozzunk létre egy új package-et `data` néven. A `data` package-ben hozzunk létre egy új Kotlin osztályt, aminek a neve legyen  `ShoppingItem`:
 ```kotlin
 @Entity(tableName = "shoppingitem")
 data class ShoppingItem(
@@ -197,7 +197,7 @@ Ezen kívül van még egy statikus *getDatabase* függvény, ami azt írja le, h
 #### A lista adapter létrehozása
 Következő lépésként a lista adaptert fogjuk létrehozni, ami a modell elemeket fogja majd szolgáltatni a `RecyclerView`-nak.
 
-A `hu.bme.aut.shoppinglist` package-ben hozzunk létre egy új package-et `adapter` néven!
+A `hu.bme.aut.android.shoppinglist` package-ben hozzunk létre egy új package-et `adapter` néven!
 
 Az `adapter` package-ben hozzunk létre egy új Kotlin osztályt `ShoppingAdapter` néven:
 
