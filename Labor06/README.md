@@ -255,7 +255,6 @@ Az ItemShoppingListBinding-ra hibát jelez a fordító, hiszen még nem hoztuk l
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:layout_marginLeft="8dp"
-        android:padding="8dp"
         tools:src="@drawable/open_book" />
 
     <LinearLayout
