@@ -599,7 +599,7 @@ class NewShoppingItemDialogFragment : DialogFragment() {
         binding = DialogNewShoppingItemBinding.inflate(LayoutInflater.from(context))
         binding.spCategory.adapter = ArrayAdapter(
             requireContext(),
-            android.R.layout.simple_spinner_dropdown_item,
+            R.layout.support_simple_spinner_dropdown_item,
             resources.getStringArray(R.array.category_items)
         )
 
@@ -619,7 +619,7 @@ class NewShoppingItemDialogFragment : DialogFragment() {
 }
 ```
 
-> A `DialogFragment`-et az `androidx.fragment.app` csomagból, az `AlertDialog`-ot pedig az `androidx.appcompat.app` csomagból importáljuk! Ha az auto-import beimportálja az `android.R` package-t, azt töröljük ki, és győződjünk meg, hogy a `hu.bme.aut.android.shoppinglist.R` package legyen importálva helyette. Továbbá a rossz import miatt az *onCreateDialog*-ban az ArrayAdapternek átadott `android.R.layout.simple_spinner_dropdown_item` elejéről az `android` kitörlődhet, ezt javítsuk.
+A `DialogFragment`-et az `androidx.fragment.app` csomagból, az `AlertDialog`-ot pedig az `androidx.appcompat.app` csomagból importáljuk! Ha az auto-import beimportálja az android.R package-t, azt töröljük ki.
 
 Az osztályban definiáltunk egy `NewShoppingItemDialogListener` nevű *callback interface*-t, amelyen keresztül a dialógust megjelenítő `Activity` értesülhet az új elem létrehozásáról.
 
@@ -671,8 +671,8 @@ class MainActivity : AppCompatActivity(), ShoppingAdapter.ShoppingItemClickListe
 
 	override fun onShoppingItemCreated(newItem: ShoppingItem) {
 		thread {
-			database.shoppingItemDao().insert(newItem)
-
+			val insertId = database.shoppingItemDao().insert(newItem)
+			newItem.id = insertId
 			runOnUiThread { 
 				adapter.addItem(newItem)
 			}
@@ -680,6 +680,8 @@ class MainActivity : AppCompatActivity(), ShoppingAdapter.ShoppingItemClickListe
 	}
 ```
 > Figyeljük meg, hogy ebben az esetben is `thread`-be csomagolva futtatunk adatbázis műveletet. A `Room` tiltja a UI szálon történő adatbázis műveletek futtatását. Emellett a *user experience (UX)* is romlik, ha az esetlegesen lassú műveletek megakasztják a UI szálat.
+
+> Az adatbázisba való beillesztés után szükséges az eredeti objektumunk id-jét az adatbázistól kapott id-re beállítani, különben egyéb műveletek nem végezhetők rajta.
 
 Próbáljuk ki az alkalmazást!
 
