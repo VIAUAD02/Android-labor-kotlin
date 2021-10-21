@@ -255,7 +255,6 @@ Az ItemShoppingListBinding-ra hibát jelez a fordító, hiszen még nem hoztuk l
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:layout_marginLeft="8dp"
-        android:padding="8dp"
         tools:src="@drawable/open_book" />
 
     <LinearLayout
@@ -578,7 +577,7 @@ Vegyük fel a hiányzó szöveges erőforrásokat a `strings.xml`-ben:
 ```
 Látható, hogy felveszünk egy `string-array`-t is, ezeket a szövegeket a Spinnerben fogjuk megjeleníteni.
 
-A `hu.bme.aut.shoppinglist` package-ben hozzunk létre egy új package-et `fragments` néven. A `fragments` package-ben hozzunk létre egy új Kotlin osztályt, aminek a neve legyen  `NewShoppingItemDialogFragment`:
+A `hu.bme.aut.android.shoppinglist` package-ben hozzunk létre egy új package-et `fragments` néven. A `fragments` package-ben hozzunk létre egy új Kotlin osztályt, aminek a neve legyen  `NewShoppingItemDialogFragment`:
 
 ```kotlin
 class NewShoppingItemDialogFragment : DialogFragment() {
@@ -620,7 +619,7 @@ class NewShoppingItemDialogFragment : DialogFragment() {
 }
 ```
 
-> A `DialogFragment`-et az `androidx.fragment.app` csomagból, az `AlertDialog`-ot pedig az `androidx.appcompat.app` csomagból importáljuk! Ha az auto-import beimportálja az android.R package-t, azt töröljük ki.
+A `DialogFragment`-et az `androidx.fragment.app` csomagból, az `AlertDialog`-ot pedig az `androidx.appcompat.app` csomagból importáljuk! Ha az auto-import beimportálja az android.R package-t, azt töröljük ki.
 
 Az osztályban definiáltunk egy `NewShoppingItemDialogListener` nevű *callback interface*-t, amelyen keresztül a dialógust megjelenítő `Activity` értesülhet az új elem létrehozásáról.
 
@@ -629,7 +628,7 @@ A megjelenő dialógust az `onCreateDialog()` függvényben állítjuk össze. E
 Implementáljuk a dialógus pozitív gombjának eseménykezelőjét a `NewShoppingItemDialogFragment` osztály `onCreateDialog` függvényén belül:
 
 ```kotlin
-.setPositiveButton(R.string.ok) { dialogInterface, i ->
+.setPositiveButton(R.string.button_ok) { dialogInterface, i ->
 	if (isValid()) {
 	    listener.onShoppingItemCreated(getShoppingItem())
 	}
@@ -691,8 +690,8 @@ Elem törlése egyesével, az elemeken található szemetes ikonra kattintás ha
 - Gomb eseménykezelőjének megvalósítása
 - Interfész kibővítése
 - Interfész függvény megvalósítása
-- Törlés az adapterből
 - Törlés az adatbázisból
+- Törlés az adapterből
 - `RecyclerView` frissítése
 
 ### IMSc feladatok
